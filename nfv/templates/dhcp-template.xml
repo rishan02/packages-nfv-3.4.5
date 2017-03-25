@@ -1,0 +1,62 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config>			
+				<ip xmlns="urn:ios" when="{dhcp-param[number($dhcpOutercount)]/modify-dhcp-param = 'No'}">
+					<dhcp>
+						<excluded-address>
+							<low-list when="{$lan-ip !=''}">
+								<low>{$lan-ip}</low>
+							</low-list>
+						</excluded-address>
+						<pool>
+							<id>{/dhcp-param[number($dhcpOutercount)]/interface-id}</id>
+							<dns-server>165.21.83.88</dns-server>
+							<dns-server>165.21.100.88</dns-server>
+							<network>
+								<network-number>{$lan-ip}</network-number>
+								<mask>{$mask}</mask>
+							</network>
+							<domain-name>nfv.connect.singtel.com</domain-name>
+							<default-router>{$lan-ip}</default-router>
+						</pool>
+					</dhcp>
+				</ip>
+				<ip xmlns="urn:ios" when="{dhcp-param[number($dhcpOutercount)]/modify-dhcp-param = 'Yes'}">
+					<dhcp>
+						<excluded-address when="{$startAddress !='' or $endaddress !=''}">
+						<low-list when="{$endaddress =''}">
+                            <low>{$startAddress}</low>
+						</low-list> 
+						<low-high-list when ="{$startAddress !=''  and $endaddress !=''}">
+							<low>{$startAddress}</low>
+							<high>{$endaddress}</high>
+						</low-high-list>
+					</excluded-address>
+					<pool>
+						<id>{/dhcp-param[number($dhcpOutercount)]/interface-id}</id>
+						<network>
+							<network-number>{$dhcp-lan-network}</network-number>
+							<mask>{$dhcp-lan-netmask}</mask>
+						</network>
+						<default-router>{default-router}</default-router>
+						<domain-name>{domain-name}</domain-name>
+						<dns-server>{dns-server/ip-address}</dns-server>						
+						<netbios-name-server>{netbios-server/ip-address}</netbios-name-server>						
+						<option when="{$option ='option'}">
+							<code>{/dhcp-param[number($dhcpOutercount)]/option[number($dhcpInnercount)]/code}</code>							
+							<instance>					
+								<option-instance>{/dhcp-param[number($dhcpOutercount)]/option[number($dhcpInnercount)]/instance}</option-instance>				
+								<ascii when="{/dhcp-param[number($dhcpOutercount)]/option[number($dhcpInnercount)]/ascii}">{/dhcp-param[number($dhcpOutercount)]/option[number($dhcpInnercount)]/ascii}</ascii>
+								<hex when="{/dhcp-param[number($dhcpOutercount)]/option[number($dhcpInnercount)]/hex}">{/dhcp-param[number($dhcpOutercount)]/option[number($dhcpInnercount)]/hex}</hex>
+								<ip when="{/dhcp-param[number($dhcpOutercount)]/option[number($dhcpInnercount)]/ip}">{/dhcp-param[number($dhcpOutercount)]/option[number($dhcpInnercount)]/ip}</ip>
+							</instance>							
+						</option>
+					</pool>
+					</dhcp>
+				</ip>
+			</config>
+		</device>
+	</devices>
+</config-template>

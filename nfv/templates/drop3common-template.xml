@@ -1,0 +1,157 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config>
+				<key xmlns="urn:ios" when="{/key-chain/name !='' and /key-chain/key/key-id !=''}">
+					<chain>
+						<name>{/key-chain/name}</name>
+						<key>
+							<id>{key/key-id}</id>
+							<key-string>
+								<secret>{key-string}</secret>
+							</key-string>
+							<send-lifetime when ="{send-start-time !='none' and send-start-time !=''}">
+          						<start-time>{substring(send-start-time,1,8)}</start-time>
+          						<start-month>{substring(send-start-time,10,3)}</start-month>       						
+          						<start-date>{substring(send-start-time,14,string-length(send-start-time)-18)}</start-date>
+          						<start-year>{substring(send-start-time,string-length(send-start-time)-3)}</start-year>
+          						<infinite/>
+   							</send-lifetime>
+   							<accept-lifetime when ="{accept-start-time !='none' and accept-start-time !=''}">
+   								<start-time>{substring(accept-start-time,1,8)}</start-time>
+          						<start-month>{substring(accept-start-time,10,3)}</start-month>          						 
+          						<start-date>{substring(accept-start-time,14,string-length(accept-start-time)-18)}</start-date>
+          						<start-year>{substring(accept-start-time,string-length(accept-start-time)-3)}</start-year>          						
+          						<infinite/>
+    						</accept-lifetime>
+						</key>
+					</chain>
+					</key>
+					<ip xmlns="urn:ios">
+						<access-list
+							when="{/access-list/standard/std-named-acl[number($aclCounter)]/name !='null'}">
+							<standard>
+								<std-named-acl>
+									<name>{/access-list/standard/std-named-acl[number($aclCounter)]/name}</name>
+									<std-access-list-rule
+										when="{/access-list/standard/std-named-acl[number($aclCounter)]/rule[number($aclRuleCounter)]/source='any'}">
+										<rule>{/access-list/standard/std-named-acl[number($aclCounter)]/rule[number($aclRuleCounter)]/seq-no} {/access-list/standard/std-named-acl[number($aclCounter)]/rule[number($aclRuleCounter)]/action} {/access-list/standard/std-named-acl[number($aclCounter)]/rule[number($aclRuleCounter)]/source}</rule>
+									</std-access-list-rule>
+									<std-access-list-rule when="{contains(/access-list/standard/std-named-acl[number($aclCounter)]/rule[number($aclRuleCounter)]/source,'/')}">
+										<rule>{$seqNo} {$action} {$aclInterfaceIp} {$aclInterfaceMask}</rule>
+									</std-access-list-rule>
+									<std-access-list-rule
+										when="{/access-list/standard/std-named-acl[number($aclCounter)]/rule[number($aclRuleCounter)]/source !='any' and not(contains(/access-list/standard/std-named-acl[number($aclCounter)]/rule[number($aclRuleCounter)]/source,'/')) ">
+										<rule>{/access-list/standard/std-named-acl[number($aclCounter)]/rule[number($aclRuleCounter)]/seq-no} {/access-list/standard/std-named-acl[number($aclCounter)]/rule[number($aclRuleCounter)]/action} {/access-list/standard/std-named-acl[number($aclCounter)]/rule[number($aclRuleCounter)]/source}</rule>
+									</std-access-list-rule>
+								</std-named-acl>
+							</standard>
+						</access-list>
+					</ip>
+				<route-map xmlns="urn:ios" when="{/route-map[number($routeMapCounter)]/name !='' and /route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/seq-no !=''}">
+					<name>{/route-map[number($routeMapCounter)]/name}</name>
+					<sequence>{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/seq-no}</sequence>
+					<operation>{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/action}</operation>
+					<match>
+						<ip>
+							<address>
+								<access-list>{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/match/ip/address/access-list-name}</access-list>
+							</address>
+						</ip>
+					</match>
+					<set>
+						<as-path>
+							<prepend>
+								<as-list when="{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/as-path-prepend/as-list-value !=''}">{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/as-path-prepend/as-list-value}</as-list>
+								<last-as when="{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/as-path-prepend/last-as-count !=''}">{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/as-path-prepend/last-as-count}</last-as>
+							</prepend>
+						</as-path>
+						<metric when="{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/metric/metric-value !='none' and /route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/metric/metric-value !=''}">{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/metric/metric-value}</metric>
+						<weight when="{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/weight/weight-value !='none' and /route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/weight/weight-value !=''}">{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/weight/weight-value}</weight>
+						<local-preference when="{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/local-preference/lp-value !='' and /route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/local-preference/lp-value !='none'}">
+							<value>{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/local-preference/lp-value}</value>
+						</local-preference>
+						<origin when="{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/origin/origin-value !='' and /route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/origin/origin-value !='none'}">
+							<origin-value>{/route-map[number($routeMapCounter)]/rule[number($ruleCounter)]/set/origin/origin-value}</origin-value>
+						</origin>
+					</set>
+				</route-map>
+
+				<interface xmlns="urn:ios">
+					<Loopback when="{/loopback-interface/loopback-id !=''}">
+						<name>{/loopback-interface/loopback-id}</name>
+						<ip>
+							<address>
+								<primary>
+									<mask>255.255.255.255</mask>
+									<address>{ip-address}</address>
+								</primary>
+							</address>
+						</ip>
+					</Loopback>
+
+					<GigabitEthernet when="{starts-with(/interface[number($interfaceOutercounter)]/interface-id,'3') or starts-with(/interface[number($interfaceOutercounter)]/interface-id,'2')}">
+						<name>{/interface[number($interfaceOutercounter)]/interface-id}</name>
+						<bandwidth when="{starts-with(/interface[number($interfaceOutercounter)]/interface-id,'3')}">
+							<kilobits>{/interface[number($interfaceOutercounter)]/bandwidth/kilobits}</kilobits>
+						</bandwidth>
+						<bfd when="{starts-with(/interface[number($interfaceOutercounter)]/interface-id,'3') or starts-with(/interface[number($interfaceOutercounter)]/interface-id,'2')}">
+							<interval>
+								<min_rx>{bfd/min-rx-interval}</min_rx>
+								<multiplier>{bfd/multiplier}</multiplier>
+								<msecs>{bfd/advertise-interval}</msecs>
+							</interval>
+						</bfd>
+						<ip when="{starts-with(/interface[number($interfaceOutercounter)]/interface-id,'3')}">
+							<address>																
+								<secondary>
+									<address>{$interfaceIp}</address>
+									<mask>{$interfaceMask}</mask>
+									<secondary />
+								</secondary>
+								
+								<!-- primary>
+            						<mask>255.255.255.0</mask>
+									<address>{$primaryIp}</address> 
+          						</primary -->						
+							
+							</address>
+							<!-- OSPF config Interfce -->
+							<ospf when="{/interface[number($interfaceOutercounter)]/ospf/authentication/authentication-type !='none'}">								
+								<authentication-key
+									when="{/interface[number($interfaceOutercounter)]/ospf/authentication/cleartext-password !=''}">
+									<secret>{/interface[number($interfaceOutercounter)]/ospf/authentication/cleartext-password}</secret>
+								</authentication-key>
+								<authentication when="{/interface[number($interfaceOutercounter)]/ospf/authentication/key-chain-name !=''}">
+            							<key-chain>{/interface[number($interfaceOutercounter)]/ospf/authentication/key-chain-name}</key-chain>
+          						 </authentication>								
+							</ospf>
+							<!-- EIGRP config Interfce -->
+							<bandwidth-percent when="{/interface[number($interfaceOutercounter)]/eigrp[number($interfaceInnercounter)]/as-number !='' and /interface[number($interfaceOutercounter)]/eigrp[number($interfaceInnercounter)]/bandwidth/percent !=''}">
+							<eigrp>
+								<as-number>{/interface[number($interfaceOutercounter)]/eigrp[number($interfaceInnercounter)]/as-number}</as-number>
+ 								<percent>{/interface[number($interfaceOutercounter)]/eigrp[number($interfaceInnercounter)]/bandwidth/percent}</percent>
+							</eigrp>
+							</bandwidth-percent>							
+							<authentication	when="{/interface[number($interfaceOutercounter)]/eigrp[number($interfaceInnercounter)]/authentication/authentication-type !='none'}">
+								<mode>
+									<eigrp>
+ 										<as-no>{/interface[number($interfaceOutercounter)]/eigrp[number($interfaceInnercounter)]/as-number}</as-no>
+										<md5 />
+									</eigrp>
+								</mode>
+								<key-chain>
+									<eigrp>
+										<as-no>{/interface[number($interfaceOutercounter)]/eigrp[number($interfaceInnercounter)]/as-number}</as-no>
+ 										<key-chain>{/interface[number($interfaceOutercounter)]/eigrp[number($interfaceInnercounter)]/authentication/key-chain-name}</key-chain>
+									</eigrp>
+								</key-chain>
+							</authentication>
+						</ip>
+					</GigabitEthernet>
+				</interface>
+			</config>
+		</device>
+	</devices>
+</config-template>

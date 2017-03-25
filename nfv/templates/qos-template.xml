@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$device}</name>
+            <config>
+                <interface xmlns="urn:ios">
+                    <GigabitEthernet when="{/interface[number($intfCounter)]/service-policy[number($servicePolicyCounter)]/direction !='' or /interface[number($intfCounter)]/access-list[number($aclCounter)]/direction !=''}">
+                    <name>{/interface[number($intfCounter)]/interface-id}</name>
+                    <service-policy when="{/interface[number($intfCounter)]/service-policy[number($servicePolicyCounter)]/direction ='egress'
+                    and string-length(/interface[number($intfCounter)]/service-policy[number($servicePolicyCounter)]/service-policy-name)&gt;0}">
+                        <output >{/interface[number($intfCounter)]/service-policy[number($servicePolicyCounter)]/service-policy-name}</output>
+                    </service-policy>
+                    <service-policy when="{/interface[number($intfCounter)]/service-policy[number($servicePolicyCounter)]/direction ='ingress'
+                     and string-length(/interface[number($intfCounter)]/service-policy[number($servicePolicyCounter)]/service-policy-name)&gt;0}">   
+                        <input>{/interface[number($intfCounter)]/service-policy[number($servicePolicyCounter)]/service-policy-name}</input>
+                    </service-policy>
+                    <ip>
+                        <access-group when="{/interface[number($intfCounter)]/access-list[number($aclCounter)]/direction ='ingress'
+                        and string-length(/interface[number($intfCounter)]/access-list[number($aclCounter)]/access-group-name)&gt;0}">
+                            <direction>in</direction>
+                            <access-list>{/interface[number($intfCounter)]/access-list[number($aclCounter)]/access-group-name}</access-list>
+                        </access-group>
+                        <access-group when="{/interface[number($intfCounter)]/access-list[number($aclCounter)]/direction ='egress'
+                        and string-length(/interface[number($intfCounter)]/access-list[number($aclCounter)]/access-group-name)&gt;0}">
+                            <direction>out</direction>
+                            <access-list>{/interface[number($intfCounter)]/access-list[number($aclCounter)]/access-group-name}</access-list>
+                        </access-group>
+                    </ip>
+                    </GigabitEthernet>
+                </interface>
+                <class-map xmlns="urn:ios">
+                    <name>{/qos/class-map/name}</name>
+                    <match>
+                        <precedence>{precedence}</precedence>
+                        <protocol>
+                            <protocol-list>
+                                <name>{protocol}</name>
+                            </protocol-list>
+                        </protocol>
+                        <dscp>{dscp/value}</dscp>
+                        <input-interface when="{starts-with(input-interface,'3.')}">GigabitEthernet{input-interface}</input-interface>
+						<input-interface when="{input-interface='3'}">GigabitEthernet3</input-interface>
+                        <access-group>
+                            <name>{access-list}</name>
+                        </access-group>
+                    </match>
+                    <prematch>{match-type}</prematch>
+                </class-map>
+                <policy-map xmlns="urn:ios">
+                    <name>{/qos/policy-map/name}</name>
+                    <description>{description}</description>
+                    <class>
+                        <name>{class/class-map-name}</name>
+                        <bandwidth>
+                            <percent>{bandwidth/bandwidth-percent}</percent>
+                            <remaining>
+                                <percent>
+                                    <percent>{bandwidth/bandwidth-percent-remaining}</percent>
+                                </percent>
+                            </remaining>
+                            <bits>{bandwidth/bandwidth-kbps}</bits>
+                        </bandwidth>
+                        <service-policy>{service-policy-name}</service-policy>
+                        <queue-limit when="{queue-limit !='none'}">
+                            <queue-limit-value>{queue-limit}</queue-limit-value>
+                        </queue-limit>
+                        <set when="{precedence !='none'}">
+                            <precedence>
+                                <precedence-value>{precedence}</precedence-value>
+                            </precedence>
+                        </set>
+                    </class> 
+                    <class-default when="{class-default/shape-average-bandwidth !='none' or string-length(class-default/service-policy-name)&gt;0}">
+                        <class>
+                            <name>class-default</name>
+                            <service-policy>{class-default/service-policy-name}</service-policy>
+                            <shape when="{class-default/shape-average-bandwidth !='none'}">
+                                <average>
+                                    <bit-rate>{class-default/shape-average-bandwidth}</bit-rate>
+                                </average>
+                            </shape>
+                        </class>
+                    </class-default>
+                </policy-map>
+            </config>
+        </device>
+    </devices>
+</config-template>

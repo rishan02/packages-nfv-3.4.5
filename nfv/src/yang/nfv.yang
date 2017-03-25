@@ -1,0 +1,2817 @@
+module nfv {
+    namespace "http://com/singtel/nfv";
+    prefix nfv;
+
+    import ietf-inet-types { prefix inet; }
+    import tailf-common { prefix tailf; }
+    import tailf-ncs { prefix ncs; }
+    import nfv-types { prefix nfvt; }
+    import sites { prefix sites; }
+ 	import tailf-ned-cisco-ios {prefix ios; }
+    grouping csr-port-grouping {
+        list csr-port {
+            tailf:info "Details of vm ports for this service instance";
+            key "device";
+
+            leaf device {
+                tailf:info "CSR device name";
+                type string;
+            }
+            leaf if-type {
+                tailf:info "CSR interface type";
+                type string;
+            }
+            leaf if-name {
+                tailf:info "CSR interface name or number";
+                type string;
+            }
+            leaf ip-address {
+                type tailf:ipv4-address-and-prefix-length;
+            }
+        }
+    }
+
+    grouping dci-port-grouping {
+        list dci-port {
+            tailf:info "Details of service ports for this service instance";
+            key "device if-type if-name";
+
+            leaf device {
+                tailf:info "DCI device name";
+                type string;
+            }
+            leaf if-type {
+                tailf:info "DCI interface type";
+                type string;
+            }
+            leaf if-name {
+                tailf:info "DCI interface name or number";
+                type string;
+            }
+            leaf remote-device {
+                tailf:info "Remote device connected to DCI device interface";
+                type string;
+            }
+            leaf remote-if-type {
+                tailf:info "Remote device interface type";
+                type string;
+            }
+            leaf remote-if-name {
+                tailf:info "Remote device interface name or number";
+                type string;
+            }
+        }
+    }
+
+    grouping service-connection-grouping {
+        uses csr-port-grouping;
+        uses dci-port-grouping;
+        leaf vlan {
+            type uint32;
+        }
+        leaf os-net {
+            type string;
+        }
+    }
+
+   
+    // *************************************************  Megapop service configuration starts ***************************************************************
+
+
+    grouping ospf-redistribution-grouping {
+        leaf subnets {
+            tailf:info "Consider subnets for redistribution into OSPF";
+            type nfvt:disable-enable;
+            default enable;
+        }
+
+        list rule  {
+            tailf:info "OSPF redistribution rule";
+            key seq-no;
+            leaf seq-no {
+                type uint32 {
+                    tailf:info "<1-2147483647>;;Rule sequence number";
+                    range "1..2147483647";
+                }
+            }
+            leaf action {
+                tailf:info "permit | deny;;Rule action";
+                type nfvt:action-deny-permit;
+            }
+            leaf network {
+                type nfvt:ip-network-host-any-type;
+            }
+        }
+    }
+
+
+    grouping redistribution-grouping {
+
+        container redistribute {
+            container static {
+                leaf route-map-name {
+                    tailf:non-strict-leafref {
+                        path "/nfv:megapop/l2nid-mpls-csr/route-map/name";
+                    }
+                    type string {
+                        tailf:info "WORD;;Name of a route map";
+                    }
+                }
+            }
+            container connected {
+                leaf route-map-name {
+                    tailf:non-strict-leafref {
+                        path "/nfv:megapop/l2nid-mpls-csr/route-map/name";
+                    }
+                    type string {
+                        tailf:info "WORD;;Name of a route map";
+                    }
+                }
+            }
+            container bgp {
+                leaf as-number {
+                    type uint16 {
+                        tailf:info "<1-65535>;;Autonomous system number";
+                        range "1..65535";
+                    }
+                }
+                leaf route-map-name {
+                    tailf:non-strict-leafref {
+                        path "/nfv:megapop/l2nid-mpls-csr/route-map/name";
+                    }
+                    type string {
+                        tailf:info "WORD;;Name of a route map";
+                    }
+                }
+            }
+            container eigrp {
+                leaf as-number {
+                    type uint16 {
+                        tailf:info "<1-65535>;;Autonomous system number";
+                        range "1..65535";
+                    }
+                }
+                leaf route-map-name {
+                    tailf:non-strict-leafref {
+                        path "/nfv:megapop/l2nid-mpls-csr/route-map/name";
+                    }
+                    type string {
+                        tailf:info "WORD;;Name of a route map";
+                    }
+                }
+            }
+            container ospf {
+                leaf process-id {
+                        type uint16 {
+                        tailf:info "<1-65535>;;Process ID";
+                        range "1..65535";
+                    }
+                }
+                leaf route-map-name {
+                    tailf:non-strict-leafref {
+                        path "/nfv:megapop/l2nid-mpls-csr/route-map/name";
+                        }
+                    type string {
+                        tailf:info "WORD;;Name of a route map";
+                    }
+                }
+            }
+        }
+    }
+
+    grouping redistribution-grouping-ospf {
+
+        container redistribute {
+            container static {
+                leaf subnets {
+                    tailf:info "Consider subnets for redistribution into OSPF";
+                    type nfvt:disable-enable;
+                    default enable;
+                }
+                leaf route-map-name {
+                    tailf:non-strict-leafref {
+                        path "/nfv:megapop/l2nid-mpls-csr/route-map/name";
+                    }
+                    type string {
+                        tailf:info "WORD;;Name of a route map";
+                    }
+                }
+            }
+            container connected {
+                leaf subnets {
+                    tailf:info "Consider subnets for redistribution into OSPF";
+                    type nfvt:disable-enable;
+                    default enable;
+                }
+                leaf route-map-name {
+                    tailf:non-strict-leafref {
+                        path "/nfv:megapop/l2nid-mpls-csr/route-map/name";
+                    }
+                    type string {
+                        tailf:info "WORD;;Name of a route map";
+                    }
+                }
+            }
+            container bgp {
+                leaf subnets {
+                    tailf:info "Consider subnets for redistribution into OSPF";
+                    type nfvt:disable-enable;
+                    default enable;
+                }
+                leaf as-number {
+                    type uint16 {
+                        tailf:info "<1-65535>;;Autonomous system number";
+                        range "1..65535";
+                    }
+                }
+                leaf route-map-name {
+                    tailf:non-strict-leafref {
+                        path "/nfv:megapop/l2nid-mpls-csr/route-map/name";
+                    }
+                    type string {
+                        tailf:info "WORD;;Name of a route map";
+                    }
+                }
+            }
+        }
+    }
+
+
+    container megapop {
+
+        list l2nid-mpls-csr {
+            description "L2NID-MPLS-CSR RFS service";
+            uses ncs:plan-data;
+            uses ncs:service-data;
+            ncs:servicepoint l2nid-mpls-csr-servicepoint;
+
+            key service-name;
+            unique sid;
+
+			leaf access-service-type {
+				tailf:info "Access service type";
+				type nfvt:access-service-type-type;
+				default megapop;
+				}
+            leaf service-name {
+                tailf:info "Name of the Megapop L2NID services";
+                tailf:cli-allow-range;
+                type string {
+                 length "1..20";
+                }
+            }
+            leaf service-type {
+                tailf:info "Type of service";
+                // mandatory true;
+				default "vcpe";
+                type string;
+            }
+            leaf brn {
+                tailf:info "Business Registration Number in Pegasus";
+                type string;
+            }
+            leaf ban {
+                mandatory true;
+                tailf:info "Business Account Number in Pegasus";
+                type string;
+            }
+            leaf sid {
+                tailf:info "Service Identifier";
+                type string;
+            }
+            container service-info {
+            	description "Service Information";
+            	leaf nickname {
+ 					tailf:info "Service label";
+        	        type string;
+            	}
+            	leaf network-service {
+ 					tailf:info "Network service label";
+        	        type string;
+            	}
+            	leaf main-circuit-reference {
+ 					tailf:info "Main circuit reference";
+        	        type string;
+            	}
+             	leaf bandwidth {
+ 					tailf:info "Service bandwidth";
+        	        type string;
+            	}
+            }
+            leaf lan-ip {
+                tailf:info "LAN IP Address";
+                type tailf:ipv4-address-and-prefix-length;
+            }
+            leaf wan-ip {
+                tailf:info "WAN IP Address";
+                type tailf:ipv4-address-and-prefix-length;
+            }
+            list lan-cvlans {
+                tailf:info "Ingress VLAN subinterfaces";
+                key "lan-cvlan-id";
+                leaf lan-cvlan-id {
+                tailf:info "LAN subinterface id";
+                     type uint32;                    
+                    }
+				leaf lan-cvlan-ip {
+               tailf:info "LAN subinterface IP Address";
+                   type tailf:ipv4-address-and-prefix-length;
+               }                     
+			} 
+			list wan-cvlans {
+                tailf:info "Egress VLAN subinterfaces";
+                key "wan-cvlan-id";
+                leaf wan-cvlan-id {
+                tailf:info "WAN subinterface id";
+                     type uint32;                    
+                    }
+				leaf wan-cvlan-ip {
+               tailf:info "WAN subinterface IP Address";
+                   type tailf:ipv4-address-and-prefix-length;
+               }                     
+			} 
+			
+            leaf ingress-id{
+              tailf:info "Ingress VLAN Id";               
+                type uint32;
+            }
+            leaf egress-id{
+             tailf:info "Egress VLAN Id";               
+                type uint32;
+            }
+            leaf routing-protocol {
+                tailf:info "Routing Protocol";
+                type enumeration {
+                    enum static {
+                        tailf:info "Static routing mode";
+                    }
+                    enum bgp {
+                        tailf:info "BGP mode";
+                    }
+                }
+            }
+            leaf as-number {
+                tailf:info "BGP AS Number";
+                when "../routing-protocol='bgp'" {
+                    tailf:dependency ".";
+                    tailf:dependency "../routing-protocol";
+                }
+                type uint32;
+            }
+            leaf remote-as-number {
+                tailf:info "REMOTE AS Number";
+                when "../routing-protocol='bgp'" {
+                    tailf:dependency ".";
+                    tailf:dependency "../routing-protocol";
+                }
+                type uint32;
+            }
+
+            leaf neighbor-passwd {
+                tailf:info "REMOTE AS Number";
+                when "../routing-protocol='bgp'" {
+                    tailf:dependency ".";
+                    tailf:dependency "../routing-protocol";
+                }
+                type string;
+            }
+
+            leaf ip-prefix-name {
+                tailf:info "IP Prefix name";
+                when "../routing-protocol='static'" {
+                    tailf:dependency ".";
+                    tailf:dependency "../routing-protocol";
+                }
+                type string;
+            }
+            leaf gateway {
+                tailf:info "Gateway Address for Static Routing";
+                type inet:ipv4-address;
+            }
+            leaf site-code {
+                tailf:info "Site Code";
+                mandatory true;
+                type leafref {
+                    path "/sites:sites/sites:site/sites:site-code";
+                }
+            }
+			
+			leaf pod {
+                when "../site-code";
+                type leafref {
+                    path "/sites:sites/sites:site[sites:site-code=current()/../site-code]/"+
+                    "sites:pods/sites:pod/sites:pod-name";
+                }
+            }
+
+            leaf dci {
+                when "../pod";
+                type leafref {
+                    path "/sites:sites/sites:site[sites:site-code=current()/../site-code]/"+
+                    "sites:pods/sites:pod[sites:pod-name=current()/../pod]/"+
+                    "sites:dci/sites:dci-name";
+                }
+            }
+            leaf dci-link-end-point {
+                when "../dci";
+                type leafref {
+                    path "/sites:sites/sites:site[sites:site-code=current()/../site-code]/"+
+                        "sites:pods/sites:pod[sites:pod-name=current()/../pod]/"+
+                        "sites:dci[sites:dci-name=current()/../dci]/"+
+                        "sites:dci-link/sites:link-end-point-id";
+                }
+            }
+			 
+			leaf ingress-mac-address
+            {
+            	 type nfvt:mac-address{
+					tailf:info "MAC address for ingress";	
+				  }
+            }
+			leaf egress-mac-address
+            {
+				  type nfvt:mac-address{
+					tailf:info "MAC address for egress";	
+				  }
+            }
+			leaf nfv-vas-reference {
+				tailf:info "nfv vas reference";
+				type string;
+			}
+			leaf product-code
+			{
+				tailf:info "product code";
+				type string;
+				// mandatory true;
+			}
+
+			leaf nfv-vas-scheme {
+				tailf:info "nfv vas scheme";
+				type enumeration {
+                    enum basic {
+                        tailf:info "basic";
+                    }
+                    enum advanced {
+                        tailf:info "advanced";
+                    }
+					enum premium {
+                        tailf:info "premium";
+                    }					
+                }
+			  // mandatory true;
+			}
+			leaf brand
+			{
+				tailf:info "Brand name";
+				type enumeration {
+                    enum cisco {
+                        tailf:info "cisco";
+                    }
+                    enum fortigate {
+                        tailf:info "fortigate";
+                    }
+					
+                }
+			//	mandatory true;
+			}
+			leaf nfv-setup
+			{
+				tailf:info "NFV setup name";
+				type enumeration {
+                    enum hosted {
+                        tailf:info "hosted";
+                    }
+                    enum edge {
+                        tailf:info "edge";
+                    }
+					enum branch {
+                        tailf:info "branch";
+                    }
+					
+                }
+			//	mandatory true;
+			}
+			leaf nfv-access-setup
+			{
+				tailf:info "NFV access setup name";
+				type enumeration {
+                    enum l2nid {
+                        tailf:info "l2nid";
+                    }
+                    enum l3nid {
+                        tailf:info "l3nid";
+                    }
+					 enum l3vpn {
+                        tailf:info "l2vpn";
+                    }
+                }
+			//	mandatory true;
+			}
+			
+			leaf circuit-reference
+			{
+				tailf:info "circuit reference";
+				type string;
+			//	mandatory true;
+			}
+			leaf speed
+			{
+				tailf:info "Speed value";
+				type string;
+			//	mandatory true;
+			}
+			
+// megapop l2nid-mpls-csr key-chain
+			
+			list key-chain {
+				tailf:info "Key chains";
+				key name;
+				leaf name {
+					tailf:info "Key chain name";
+					type string {
+						tailf:info "WORD;;Key-chain name";
+                    }
+                }
+                list "key" {
+                    tailf:info "Key";
+                    key key-id;
+                    leaf key-id {
+                        type uint32 {
+                            tailf:info "<0-2147483647>;;Key identifier";
+                            range "0..2147483647";
+                        }
+                    }
+                    leaf key-string {
+                        type string {
+                            tailf:info "LINE;;Unencrypted (clear text) key string";
+                        }
+                    }
+                    leaf accept-start-time {
+                        type nfvt:time-string-none-type {
+                            tailf:info "HH:MM:SS Mon DD YYYY | now | none;;Accept lifetime";
+                        }
+                    }
+                    leaf send-start-time {
+                        type nfvt:time-string-none-type {
+                            tailf:info "HH:MM:SS Mon DD YYYY | now | none;;Send lifetime";
+                        }
+                    }
+                }
+			}
+
+// megapop l2nid-mpls-csr track
+
+            container track {
+				tailf:info "Trackiing objects";
+                list track-object {
+                    key object-number;
+                    leaf object-number {
+						type uint16 {
+                            tailf:info "<1-1000>;;Tracked object number";
+                            range "1..1000";
+                            }
+                    }
+                    leaf object-type {
+                        type enumeration {
+                            enum interface {
+                                tailf:info "Interface";
+                            }
+                            enum ip-route {
+                                tailf:info "IP Route";
+                            }
+                            enum list {
+                                tailf:info "Object list";
+                            }
+                        }
+                    }
+                    container interface {
+                        when "../object-type = 'interface'" {
+                            tailf:dependency "../object-type";
+                        }
+                        leaf interface-id {
+                            tailf:info "Interface to track";
+							type leafref 
+							{
+							path "/ncs:devices/ncs:device[ncs:name=current()/../../../../device-name]/ncs:config/ios:interface/ios:GigabitEthernet/ios:name";					
+							}
+                            must "starts-with(current(),'3')"{
+								error-message "Only LAN interaface can be selected.";
+							}
+                        }
+                        leaf track-type {
+                            type enumeration {
+                                enum line-protocol {
+                                    tailf:info "Line Protocol";
+                                }
+                                enum ip-routing {
+                                    tailf:info "IP Routing";
+                                }
+                            }
+                        }
+                    }
+                    container ip-route {
+                        when "../object-type = 'ip-route'" {
+                            tailf:dependency "../object-type";
+                        }
+                        leaf network-ip {
+                            type tailf:ipv4-address-and-prefix-length {
+                                tailf:info "A.B.C.D;;Network address to track";
+                            }
+                        }
+                    }
+                    container list {
+                        when "../object-type = 'list'" {
+                            tailf:dependency "../object-type";
+                        }
+                        leaf operator {
+                            tailf:info "Boolean operator for list object states";
+                            type enumeration {
+                                enum and {
+                                    tailf:info "Boolean AND operation on list";
+                                }
+                                enum or {
+                                    tailf:info "Boolean OR operation on list";
+                                }
+                            }
+                        }
+                        list object {
+                            key object-no;
+                            leaf object-no {
+                                type uint16 {
+                                    tailf:info "<1-1000>;;Tracked object number";
+                                    range "1..1000";
+                                }
+                            }
+                            leaf not {
+                                tailf:info "Negate the object state";
+                                type nfvt:disable-enable;
+                                default disable;
+                            }
+                        }
+                    }
+                    container delay {
+                        leaf down-timer {
+							type uint8 {
+								tailf:info "<0-180>;;Seconds to delay down change notification";
+								range "0..180";
+                            }
+                        }
+                        leaf up-timer {
+							type uint8 {
+								tailf:info "<0-180>;;Seconds to delay up change notification";
+								range "0..180";
+                            }
+                        }
+                    }
+                }
+            }
+
+// megapop l2nid-mpls-csr prefix-list
+
+            list prefix-list {
+                key name;
+                leaf name {
+                    type string {
+                        tailf:info "WORD;;Name of a prefix list";
+                    }
+                }
+                leaf admin-state {
+                    tailf:info "Enable or disable prefix list";
+                    type nfvt:disable-enable;
+                    default enable;
+                }
+                list rule {
+                    tailf:info "Prefix list rule";
+                    key seq-no;
+                    leaf seq-no {
+                        type uint32 {
+                            tailf:info "<1-4294967294>;;Sequence number";
+                            range "1..4294967294";
+                        }
+                    }
+                    leaf action {
+                        tailf:info "permit | deny;;Rule action";
+                        type nfvt:action-deny-permit;
+                        }
+                    leaf network {
+                        type tailf:ipv4-address-and-prefix-length;
+                        }
+                    leaf ge {
+                        type uint8 {
+                            range "1..32";
+                            tailf:info "<1-32>;;Minimum prefix length";
+                        }
+                    }
+                    leaf le {
+                        type uint8 {
+                            range "1..32";
+                            tailf:info "<1-32>;;Maximum prefix length";
+                        }
+                    }
+                }
+            }
+
+
+// megapop l2nid-mpls-csr route-map
+
+            list route-map {
+                key "name";
+                leaf name {
+                    type string {
+                        tailf:info "WORD;;Route map tag";
+                    }
+                }
+                leaf admin-state {
+                    tailf:info "Enable or disable prefix list";
+                    type nfvt:disable-enable;
+                    default enable;
+                }
+                list rule {
+                    tailf:info "Route map rule";
+                    key seq-no;
+                    leaf seq-no {
+                        type uint16 {
+                            tailf:info "<0-65535>;;Route map entry sequence number";
+                            range "0..65535";
+                        }
+                    }
+                    leaf action {
+                        tailf:info "permit | deny;;Rule action";
+                        type nfvt:action-deny-permit;
+                        }
+                    container match {
+                        container ip {
+                            container address {
+                                leaf access-list-name {
+                                    tailf:non-strict-leafref {
+                                        path "/nfv:megapop/l2nid-mpls-csr/access-list/standard/std-named-acl/name";
+                                    }
+                                    type string {
+                                        tailf:info "WORD;;Access-list name";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    container set {
+                        container as-path-prepend {
+                            tailf:info "Prepend string for a BGP AS-path attribute";
+                            leaf prepend-type {
+                                tailf:info "Enable or disable AS path prepend";
+                                type enumeration {
+                                    enum none {
+                                        tailf:info "none - No AS prepend";
+                                    }
+                                    enum as-list {
+                                        tailf:info "as-list - List of AS";
+                                    }
+                                    enum last-as {
+                                        tailf:info "last-as - Repeat last AS";
+                                    }
+                                }
+                                default none;
+                            }
+                            leaf as-list-value {
+                                when "../prepend-type = 'as-list'" {
+                                    tailf:dependency "../prepend-type";
+                                }
+                                tailf:info "AS path prepend list";
+                                type string {
+                                    tailf:info "<1-65535>[.<0-65535>];;AS number list";
+                                    pattern "(([0-9]+\.)?([0-9]+) )*(([0-9]+\.)?([0-9]+))";  // Need to test pattern
+                                }
+                            }
+                            leaf last-as-count {
+                                when "../prepend-type = 'last-as'" {
+                                    tailf:dependency "../prepend-type";
+                                }
+                                tailf:info "Count of last AS number to prepend";
+                                type uint8 {
+                                    tailf:info "<1-10>;;Count of last-AS to prepend";
+                                    range "1..10";
+                                }
+                                default 1;
+                            }
+                        }
+                        container metric {  // NED has leaf-list of metric values.
+                            leaf metric-value {
+                                tailf:info "Metric value for destination routing protocol";
+                                type union {
+                                    type enumeration {
+                                        enum none {
+                                            tailf:info "Do not set weight";
+                                        }
+                                    }
+                                    type string {
+                                        tailf:info "+/-<metric>;;Add or subtract metric
+                                        <0-4294967295>;;Metric value or Bandwidth in Kbits per second";
+                                        pattern '[+-]?[0-9]*';
+                                    }
+                                }
+                            }
+                        }
+                        container origin {
+                            leaf origin-value {
+                                type enumeration {
+                                    enum none {
+                                        tailf:info "Do not set origin";
+                                    }
+                                    enum igp {
+                                        tailf:info "local IGP";
+                                    }
+                                    enum incomplete {
+                                        tailf:info "unknown heritage";
+                                    }
+                                }
+                            }
+                        }
+                        container weight {
+                            leaf weight-value {
+                                tailf:info "BGP weight for routing table";
+                                type union {
+                                    type enumeration {
+                                        enum none {
+                                            tailf:info "Do not set weight";
+                                        }
+                                    }
+                                    type uint32 {
+                                        tailf:info "<0-65535>;;Weight value";
+                                        range "0..65535";
+                                    }
+                                }
+                            }
+                        }
+                        container local-preference {
+                            tailf:info "BGP local preference path attribute";
+                            leaf "lp-value" {
+                                type union {
+                                    type enumeration {
+                                        enum none {
+                                            tailf:info "Do not set local preference";
+                                        }
+                                    }
+                                    type uint32 {
+                                        tailf:info "<0-4294967295>;;Preference value";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+// megapop l2nid-mpls-csr loopback-interface
+			
+			list loopback-interface {
+				tailf:info "Loopback interfaces"; 
+				key loopback-id;
+				
+				leaf loopback-id {
+					tailf:info "Loopback interface number";
+					type uint32 {
+						tailf:info "<0-2147483647>;;Loopback interface number";
+						range "0..2147483647";
+                    }
+                }
+            	leaf ip-address {
+               		tailf:info "Loopback IP Address";
+               		type inet:ipv4-address;
+               	}
+			}
+
+// megapop l2nid-mpls-csr interface
+			
+			list interface {
+				tailf:info "Interface parameters"; 
+				key interface-id;
+				
+				leaf interface-id {
+					tailf:info "Interface identifier";
+					type string;
+                }
+
+            	list secondary-ip {               
+				key "address";
+				leaf address {
+                                tailf:info "Secondary IP Address";
+               					 type tailf:ipv4-address-and-prefix-length {
+                                     tailf:info "Network address";
+                                }
+                }                              
+				}
+                container bandwidth {
+                    tailf:info "Set bandwidth informational parameter";
+                    leaf kilobits {
+                        tailf:cli-drop-node-name;
+                        type uint32 {
+                            tailf:info "<1-10000000>;;Bandwidth in kilobits";
+                            range "1..10000000";
+                        }
+                    }
+                }
+
+                container bfd {
+                    leaf advertise-interval {
+                        type uint16 {
+                            tailf:info "<15-999>;;Milliseconds";
+                        range "15..999";
+                        }
+                    }
+                    leaf min-rx-interval {
+                        type uint16 {
+                            tailf:info "<15-999>;;Milliseconds";
+                            range "15..999";
+                        }
+                    }
+                    leaf multiplier {
+                        type uint8 {
+                            tailf:info "<3-50>;;value used to multiply the interval";
+                            range "3..50";
+                        }
+                    }
+                }
+
+               container ospf {
+					container authentication {
+		          			tailf:info "Enable authentication";
+						leaf authentication-type {
+							tailf:info "Authentication type";
+							type enumeration {
+								enum none {
+									tailf:info "Use no authentication";
+								}
+								enum cleartext {
+									tailf:info "Use clear text";
+								}
+								enum md5 {
+									tailf:info "Use message digest";
+								}
+							}
+							default none;
+						}
+						leaf cleartext-password {
+							tailf:info "LINE;;The UNENCRYPTED (cleartext) password/key";
+							when "../authentication-type = 'cleartext'" {
+								tailf:dependency "../authentication-type";
+							}
+							type string {
+								length "1..8";
+							}
+						}
+						leaf key-chain-name {
+							when "../authentication-type = 'md5'" {
+								tailf:dependency "../authentication-type";
+							}
+							tailf:non-strict-leafref {
+								path "/nfv:megapop/l2nid-mpls-csr/key-chain/name";
+							}
+							type string {
+								tailf:info "WORD;;Key chain name";
+							}
+						}
+					}
+				}
+                list eigrp {  
+                key as-number;
+                    leaf as-number {
+                        type uint16 {
+                            tailf:info "<1-65535>;;Autonomous system number";
+                            range "1..65535";
+                        }
+                    }
+                    container bandwidth {
+                        tailf:info "Set EIGRP bandwidth limit";
+                        leaf percent {
+                            type uint32 {
+                                tailf:info "<1-999999>;;Maximum bandwidth percentage that EIGRP may use";
+                                range "1..999999";
+                            }
+                        }
+                    }
+					container authentication {
+          				tailf:info "Enable authentication";
+						leaf authentication-type {
+ 				    		tailf:info "Authentication type";
+							type enumeration {
+								enum none {
+									tailf:info "Use no authentication";
+								}
+								enum md5 {
+									tailf:info "Use message digest";
+								}
+							}
+							default none;
+						}
+                        leaf key-chain-name {
+                            when "../authentication-type = 'md5'" {
+                                tailf:dependency "../authentication-type";
+                            }
+                            tailf:non-strict-leafref {
+                                path "/nfv:megapop/l2nid-mpls-csr/key-chain/name";
+                            }
+                            type string {
+                                tailf:info "WORD;;Key chain name";
+                            }
+                        }
+                    }
+               	}
+                
+// megapop l2nid-mpls-csr interface access-list
+                list access-list {
+                    tailf:info "Interface access list";
+                    key direction;
+                    leaf direction {
+                        tailf:info "ingress | egress;;Interface access list direction";
+                        type nfvt:flow-direction-type;
+                        }
+                    leaf access-group-name {
+                        tailf:non-strict-leafref {
+                            path "/nfv:megapop/l2nid-mpls-csr/access-list/extended/ext-named-acl/name";
+                        }
+                        type string {
+                            tailf:info "WORD;;Name of an extended access list";
+                        }
+                    }
+                }
+
+                list service-policy {
+                    tailf:info "Interface service policy";
+                    key direction;
+                    leaf direction {
+                        tailf:info "ingress | egress;;Interface service policy direction";
+                        type nfvt:flow-direction-type;
+                        }
+                    leaf service-policy-name {
+                        tailf:non-strict-leafref {
+                            path "/nfv:megapop/l2nid-mpls-csr/qos/policy-map/name";
+                        }
+                        type string {
+                            tailf:info "WORD;;Name of a policy map";
+                        }
+                    }
+                }
+
+// megapop l2nid-mpls-csr interface vrrp
+				container vrrp {
+					tailf:info "Virtual Router Redundancy Protocol (VRRP)"; 
+					list vrrp-group {
+						tailf:info "VRRP Group ID";
+						key group-id;
+						leaf group-id {
+							type uint16 {
+                                tailf:info "VRRP Group ID range 0 - 255";
+                                range "0..255";
+							}
+						}
+						leaf admin-state {
+							tailf:info "Enable or disable VRRP Group";
+							type nfvt:disable-enable;
+							default disable;
+						}
+
+                        // Needs to be configured only when authentication,
+                        // timers and priority are defined by the User.
+						leaf ip-address {
+							tailf:info "VRRP Virtual IPv4 address";				
+							type inet:ipv4-address {
+								tailf:info "A.B.C.D;;Virtual IPv4 address";
+							}
+						}						
+						leaf priority {
+							tailf:info "Priority level";
+							type uint8 {
+								tailf:info "<1-254>;;Priority value";
+								range "1..254";
+							}
+                        default 100;
+						}
+
+						container preemption {
+							tailf:info "Preemption configuration";
+                            leaf preempt {
+                                tailf:info "Enable or disable preemption";
+                                type nfvt:disable-enable;
+                            default disable;
+                            }
+                            leaf min-delay-time {
+                                type uint16 {
+                                    tailf:info "<0-3600>;;Number of seconds for minimum delay";
+                                    range "0..3600";
+								}
+                            default 0;
+							}
+						}
+
+						container timers {
+                            tailf:info "Hello timer";
+
+                            // User should provide values either in seconds or milliseconds
+                            choice hello-interval-choice {
+                                leaf hello-interval-sec {
+                                    type uint8 {
+                                        tailf:info "<1-255>;;Hello interval in seconds";
+                                        range "1..255";
+                                    }
+                                default 1;
+                                }
+                                leaf hello-interval-msec {
+                                    tailf:info "Specify hello interval in milliseconds";
+                                    type uint16 {
+										tailf:info "<15-999>;;Hello interval in milliseconds";
+										range "50..999";
+									}
+								}
+							}
+							leaf learn {
+								tailf:info "Learn timer values from current master";
+                                type nfvt:disable-enable;
+                                default disable;
+							}
+						}
+
+						list track {
+							tailf:info "VRRP Tracking object list";
+							key object-number;
+							leaf object-number {
+								tailf:info "Tracking object <1-1000>";
+								type uint16 {
+									tailf:info "<1-1000>;;Tracked object";
+									range "1..1000";
+								}
+							}
+							leaf priority-decrement {
+								tailf:info "Priority decrement <1-255>";
+								type uint16 {
+									tailf:info "<1-255>;;Priority decrement value";
+									range "1..255";
+								}
+                            default 10;
+							}
+						}
+
+						container authentication {
+							tailf:info "VRRP authentication";
+							leaf authentication-type {
+								tailf:info "Authentication type";
+								type enumeration {
+									enum none {
+										tailf:info "Use no authentication";
+									}
+									enum cleartext {
+									tailf:info "Use clear text password";
+										}				
+								}
+                            default none;
+							}
+                            leaf cleartext-password {
+							when "../authentication-type = 'cleartext'" {
+								tailf:dependency "../authentication-type";
+								}
+							type string {
+							tailf:info "WORD;;Clear text password";
+								}
+							}
+
+						}
+                    }
+                }
+
+// megapop l2nid-mpls-csr interface hsrp
+
+				container hsrp {
+					tailf:info "Hot Standby Routing Protocol (HSRP)";
+					leaf version {      // Needs to be set in the template. Default version - 2.
+						tailf:info "HSRP Version. Only Version 2 supported";
+						type enumeration {
+                            tailf:info "<2-2>;;Version number";
+                            enum "2";
+						}
+						default 2;
+					}
+					list hsrp-group {
+						tailf:info "HSRP Group";
+						key group-id;
+
+						leaf group-id {
+							type uint16 {
+							tailf:info "HSRP Group ID range 0 - 4095";
+							range "0..4095";
+							}
+						}
+						leaf admin-state {
+							tailf:info "Enable or disable HSRP Group";
+							type nfvt:disable-enable;
+							default disable;
+						}
+
+                        // Can not be same as Interface's IP address.
+                        // Should be in same subnet as Interface IP Address.
+                        // Needs to be configured only when authentication,
+                        // timers and priority are defined by the User.
+
+						leaf ip-address {
+							tailf:info "HSRP group virtual IP address";
+							type inet:ipv4-address {
+								tailf:info "A.B.C.D;;Virtual IPv4 address";
+							}
+						}
+						leaf priority {
+							tailf:info "Priority level";
+							type uint8 {
+								tailf:info "<0-255>;;Priority value";
+								range "0..255";
+							}
+						}
+
+						container preemption {
+							tailf:info "Preemption configuration";
+                            leaf preempt {
+                                tailf:info "Enable or disable preemption";
+                                type nfvt:disable-enable;
+                            default disable;
+                            }
+                            leaf min-delay-time {
+                                type uint16 {
+                                    tailf:info "<0-3600>;;Number of seconds for minimum delay";
+                                    range "0..3600";
+								}
+                            default 0;
+							}
+                            leaf reload-delay-time {
+                                type uint16 {
+                                    tailf:info "<0-3600>;;Number of seconds for reload delay";
+                                    range "0..3600";
+                                }
+                            default 0;
+                            }
+                            leaf sync-delay-time {
+                                type uint16 {
+                                    tailf:info "<0-3600>;;Number of seconds for sync delay";
+                                    range "0..3600";
+								}
+                            default 0;
+							}
+						}
+
+						container timers {
+                            tailf:info "Hello and hold timers"; // User should provide values either in seconds or milliseconds
+                            choice hello-interval-choice {
+                                leaf hello-interval-sec {
+                                    type uint8 {
+                                        tailf:info "<1-254>;;Hello interval in seconds";
+                                        range "1..254";
+                                    }
+                                default 3;
+                                }
+                                leaf hello-interval-msec {
+                                    tailf:info "Specify hello interval in milliseconds";
+                                    type uint16 {
+										tailf:info "<15-999>;;Hello interval in milliseconds";
+										range "15..999";
+									}
+								}
+							}
+                            choice hold-time-choice {
+                                leaf hold-time-sec {
+                                    type uint8 {
+										tailf:info "<1-255>;;Hold time in seconds";
+                                        range "1..255";
+										}
+                                default 10;
+                                }
+                                leaf hold-time-msec {
+                                    tailf:info "Specify hold time in milliseconds";
+                                    type uint16 {
+                                        tailf:info "<50-3000>;;Hello interval in milliseconds";
+										range "50..3000";
+									}
+								}
+							}
+						}
+
+						list track {
+							tailf:info "HSRP Tracking object list";
+							key object-number;
+							leaf object-number {
+								tailf:info "Tracking object <1-1000>";
+								type uint16 {
+									tailf:info "<1-1000>;;Tracked object";
+									range "1..1000";
+								}
+							}
+							leaf priority-decrement {
+								tailf:info "Priority decrement <1-255>";
+								type uint16 {
+									tailf:info "<1-255>;;Priority decrement value";
+									range "1..255";
+								}
+                            default 10;
+							}
+						}
+
+						container authentication {
+							tailf:info "HSRP authentication";
+							leaf authentication-type {
+								tailf:info "Authentication type";
+								type enumeration {
+									enum none {
+										tailf:info "Use no authentication";
+									}
+									enum md5 {
+										tailf:info "Use message digest";
+									}
+								}
+                            default none;
+							}
+                            leaf key-chain-name {
+                                when "../authentication-type = 'md5'" {
+                                    tailf:dependency "../authentication-type";
+                                }
+                                tailf:non-strict-leafref {
+                                    path "/nfv:megapop/l2nid-mpls-csr/key-chain/name";
+                                }
+                                type string {
+                                    tailf:info "WORD;;Key chain name";
+                                }
+							}
+						}
+					}
+				}
+			}
+
+
+            // *************************************************  1.1.2.1	WAN Routing Prefix List starts ***************************************************************
+            leaf bgp-prefix-list-Ingress {
+                tailf:info "WAN Routing - BGP Prefix List - enable Ingress";
+                when "../routing-protocol='bgp'" {
+                    tailf:dependency ".";
+                    tailf:dependency "../routing-protocol";
+                }
+                type enumeration {
+                    enum enable {
+                        tailf:info "Ingress Enable";
+                    }
+                    enum disable {
+                        tailf:info "Ingress Disable";
+                    }
+                }
+            }
+
+            leaf bgp-prefix-list-Egress {
+                tailf:info "WAN Routing - BGP Prefix List - enable Egress";
+                when "../routing-protocol='bgp'" {
+                    tailf:dependency ".";
+                    tailf:dependency "../routing-protocol";
+                }
+                type enumeration {
+                    enum enable {
+                        tailf:info "Egress Enable";
+                    }
+                    enum disable {
+                        tailf:info "Egress Disable";
+                    }
+                }
+            }
+
+            list bgp-prefix-list {
+
+                tailf:info "WAN routing Prefix List configuration";
+                key "bgp-seq-no bgp-direction";
+
+                leaf bgp-direction {
+                    tailf:info "WAN Routing - BGP Prefix List - Configuration";
+                    when "../../routing-protocol='bgp'" {
+                        tailf:dependency ".";
+                        tailf:dependency "../../routing-protocol";
+                    }
+                    type enumeration {
+                        enum Ingress {
+                            tailf:info "Ingress";
+                        }
+                        enum Egress {
+                            tailf:info "Egress";
+                        }
+                    }
+                }
+
+                leaf bgp-action {
+                    tailf:info "M Permit or Deny - WAN Routing - BGP - Prefix List - Configuration";
+                    when "../../routing-protocol='bgp'" {
+                        tailf:dependency ".";
+                        tailf:dependency "../../routing-protocol";
+                    }
+                    type enumeration {
+                        enum permit {
+                            tailf:info "Permit Action";
+                        }
+                        enum deny {
+                            tailf:info "Deny Action";
+                        }
+                    }
+                }
+
+                leaf bgp-seq-no {
+                    tailf:info "NM Sequence Number for WAN Routing - BGP - Prefix List - Configuration";
+                    type uint16;
+                }
+
+                leaf bgp-ip-pref-network {
+                    tailf:info "BGP Network address for WAN Routing - BGP Prefix List - Configuration";
+                    when "../../routing-protocol='bgp'" {
+                        tailf:dependency ".";
+                        tailf:dependency "../../routing-protocol";
+                    }
+                    type tailf:ipv4-address-and-prefix-length;
+                }
+            }
+            // *************************************************  1.1.2.1	WAN Routing Prefix List ends ***************************************************************
+            // ************************************************* 1.1.2.3	LAN Routing Static starts ******************************************************************
+            list static_routes {
+                tailf:info "LAN static routing configuration";
+                key "lan-ip-network lan-next-hop-ip";
+                leaf lan-ip-network {
+                    tailf:info "LAN IP Network address";
+                    type tailf:ipv4-address-and-prefix-length;
+                }
+                leaf lan-next-hop-ip {
+                    tailf:info "Next hop gateway address for the static route";
+                    type inet:ipv4-address;
+                }
+
+                leaf comment {
+                    tailf:info "Comment on the static route";
+                    type string;
+                }
+            }
+            // ************************************************* 1.1.2.3	LAN Routing Static ends ***************************************************************
+
+
+
+// megapop l2nid-mpls-csr bgp
+
+ list bgp {
+				tailf:info "Border Gateway Protocol";
+				key as-number;			
+				max-elements 1;
+				when "../routing-protocol='bgp'" {
+                    tailf:dependency "../routing-protocol";
+                }
+				leaf as-number {
+					tailf:cli-suppress-range;
+				
+        			type uint32 {
+         				tailf:info "<1-65535>;;Autonomous system number";
+          				range "1..65535";
+          			}
+          			tailf:non-strict-leafref {
+          			path "../../as-number";
+          			}
+          		}
+          		
+				leaf admin-state {
+				    tailf:info "Enable or disable BGP process";
+					type nfvt:disable-enable;
+					default disable;
+				}
+
+				//	If not set, highest loopback interface ip address is used.
+				// router-id should not be changes once set.
+				leaf router-id {
+                    tailf:info "BGP router ID";
+                    tailf:non-strict-leafref {
+                        path "/nfv:megapop/nfv:l2nid-mpls-csr/loopback-interface/ip-address";  
+                    }
+                    type inet:ipv4-address {
+                        tailf:info "BGP router id";
+                    }
+				}
+
+                container graceful-restart {
+                    tailf:info "Graceful restart capability parameters";
+                    leaf admin-state {
+						tailf:info "Enable or disable BGP graceful restart";
+						type nfvt:disable-enable;				
+						default disable;
+					}
+                    
+                    leaf restart-time {
+                        tailf:info "Set the max time needed to restart and come back up";
+                        type union {
+                            type enumeration {
+                                enum none {
+                                    tailf:info "Clear GRS restart time";
+                                }
+                            }
+                            type uint16 {
+                                tailf:info "<1-3600>;;Delay value (seconds)";
+                                range "1..3600";
+                            }
+                        }
+                    }
+                    leaf stale-path-time {
+                        tailf:info "Set the max time to hold onto restarting";
+                        type union {
+                            type enumeration {
+                                enum none {
+                                    tailf:info "Clear GRS hold time";
+                                }
+                            }
+                            type uint16 {
+                                tailf:info "<1-3600>;;Delay value (seconds)";
+                                range "1..3600";
+                            }
+                        }
+                    }
+                }
+
+          		list network {
+					tailf:info "BGP network";
+          			key ip-address;
+					leaf ip-address {
+                        tailf:info "Network address and prefix length";
+                        type tailf:ipv4-address-and-prefix-length;
+                    }
+          		}
+
+// megapop l2nid-mpls-csr bgp neighbor
+
+          		list neighbor {
+					tailf:info "BGP neighbors";
+          			key ip-address;
+
+					leaf ip-address {
+                        tailf:info "BGP neighbor";
+                        type inet:ipv4-address;
+                    }
+                    leaf remote-as-number {
+                        type uint16 {
+                            tailf:info "<1-65535>;;Remote autonomous system number";
+                            range "1..65535";
+                        }
+          			}
+          			leaf password {
+                        tailf:info "BGP neighbor password";
+                        type string;
+          			}
+
+                    leaf fall-over-bfd {
+                        tailf:info "Enable or disable BFD";
+                        type nfvt:disable-enable;
+                        default disable;
+                    }
+         		}
+
+// megapop l2nid-mpls-csr bgp address-family
+
+                list address-family {
+                    key af;
+                    leaf af {
+                        type enumeration {
+                            enum ipv4 {
+                                tailf:info "BGP address family IPv4";
+                            }
+                            enum vpnv4 {
+                                tailf:info "BGP address family VPNv4";
+                            }
+                        }
+                    }
+                     leaf synchronization {
+                            tailf:info "disable | enable;;BGP-IGP synchronization";
+                            type nfvt:disable-enable;
+                            default disable;
+                        }
+
+                    list neighbor {
+                        tailf:info "BGP neighbors";
+                        key ip-address;
+                        leaf ip-address {
+                            tailf:info "BGP neighbor";
+                            type inet:ipv4-address;
+                        }
+                        leaf activate {
+                            tailf:info "disable | enable;;Activate BGP neighbor";
+                            type nfvt:disable-enable;
+                            default disable;
+                        }
+                         list prefix-list {
+							tailf:info "BGP prefix list";
+							key direction;
+							leaf direction {
+                            tailf:info "ingress | egress;;BGP prefix list direction";
+                            type nfvt:flow-direction-type;
+								}
+							leaf prefix-list-name {
+                            tailf:non-strict-leafref {
+                                path "/nfv:megapop/l2nid-mpls-csr/prefix-list/name";
+								}
+                            type string {
+                                tailf:info "WORD;;Name of a prefix list";
+								}
+							}
+						}
+						list route-map {
+                            tailf:info "Route map";
+                            key direction;
+                            leaf direction {
+                                tailf:info "ingress | egress;;Route map direction";
+                                type nfvt:flow-direction-type;
+                            }
+                            leaf route-map-name {
+                                tailf:non-strict-leafref {
+                                    path "/nfv:megapop/l2nid-mpls-csr/route-map/name";
+                                }
+                                type string {
+                                    tailf:info "WORD;;Name of a route map";
+                                }
+                            }
+                        }
+                       
+                        leaf next-hop-self {
+                            tailf:info "disable | enable;;BGP neighbor next-hop-self";
+                            type nfvt:disable-enable;
+                            default disable;
+                        }
+                       
+                        container default-information {
+                            leaf originate {
+                                tailf:info "disable | enable;;Advertise default route";
+                                type nfvt:disable-enable;
+                                default disable;
+                            }
+                        }
+
+                        
+                    }
+
+
+// megapop l2nid-mpls-csr bgp address-family redistribute
+
+                    uses redistribution-grouping;
+                }
+            }       
+
+           
+// megapop l2nid-mpls-csr ospf
+
+			list ospf {
+				tailf:info "Open Shortest Path First (OSPF)"; 
+				key process-id;
+				
+				leaf process-id {
+					tailf:cli-suppress-range;
+        			type uint16 {
+         				tailf:info "<1-65535>;;Process ID";
+          				range "1..65535";
+          			}
+          		}
+          		
+				leaf admin-state {
+				    tailf:info "Enable or disable OSPF process";
+					type nfvt:disable-enable;
+					default disable;
+				}
+
+				//	If not set, highest loopback interface ip address is used.
+				// router-id should not be changes once set.
+				leaf router-id {
+                    tailf:info "OSPF router ID";
+                    tailf:non-strict-leafref {
+                        path "/nfv:megapop/nfv:l2nid-mpls-csr/loopback-interface/ip-address";  // Need to check path
+                    }
+                    type inet:ipv4-address {
+                        tailf:info "OSPF router id";
+                    }
+				}
+          		leaf log-adjacency-changes {
+ 				    tailf:info "Enable or disable OSPF adjacency changes logging";
+					type nfvt:disable-enable;
+					default disable;
+          		}
+          		container default-information {
+					leaf originate {
+ 				    	tailf:info "Advertise the default route learnt for a different protocol";
+                        type nfvt:disable-enable;
+                        default disable;
+       				}
+					leaf always {
+ 				    	tailf:info "Always advertise the default route";
+                        type nfvt:disable-enable;
+                        default disable;
+                    }
+       			}
+
+          		list network {
+					tailf:info "OSPF network";
+          			key ip-address;
+					leaf ip-address {
+                        tailf:info "Network address and prefix length";
+                        type tailf:ipv4-address-and-prefix-length;
+                    }
+          			leaf area-id {
+                        tailf:info "OSPF area ID";
+                        type uint32 {
+                            tailf:info "<0-4294967295>;;OSPF area ID as a decimal value";
+                            range "0..4294967295";
+                        }
+          			}
+          		}
+          		
+          		list interface {
+					tailf:info "OSPF non-passive interfaces";
+					key "interface-id"; 
+
+					
+					leaf interface-id {
+						tailf:info "Interface identifier";						
+						type leafref {
+						path "/ncs:devices/ncs:device[ncs:name=current()/../../../device-name]/ncs:config/ios:interface/ios:GigabitEthernet/ios:name";	
+	                        				
+						}
+							must "starts-with(current(),'3')"{
+							error-message "Only LAN interaface can be selected.";
+							}
+					}
+				}
+                uses redistribution-grouping-ospf;
+           	}
+				
+// megapop l2nid-mpls-csr eigrp
+
+			list eigrp {
+				tailf:info "Enhanced Interior Gateway Routing Protocol";
+				key as-number;
+				
+				leaf as-number {
+					tailf:cli-suppress-range;
+        			type uint16 {
+         				tailf:info "<1-65535>;;Autonomous system number";
+          				range "1..65535";
+          			}
+          		}
+				leaf admin-state {
+				    tailf:info "Enable or disable EIGRP process";
+					type nfvt:disable-enable;
+					default disable;
+				}
+
+				//	If not set, highest loopback interface ip address is used.
+				// router-id should not be changes once set.
+				leaf router-id {
+                    tailf:info "EIGRP router ID";
+                    tailf:non-strict-leafref {
+                        path "/nfv:megapop/nfv:l2nid-mpls-csr/loopback-interface/ip-address";  // Need to check path
+                    }
+                    type inet:ipv4-address {
+                        tailf:info "EIGRP router id";
+                    }
+				}
+          		leaf auto-summary {
+ 				    tailf:info "Enable automatic network number summarization";
+					type nfvt:disable-enable;
+					default disable;
+          		}
+          		list network {
+					tailf:info "EIGRP network";
+          			key ip-address;
+					leaf ip-address {
+                        tailf:info "Network address and prefix length";
+                        type tailf:ipv4-address-and-prefix-length;
+                    }
+          		}
+          		list interface {
+					tailf:info "EIGRP non-passive interfaces";
+					key "interface-id"; 
+
+					leaf interface-id {
+						tailf:info "Interface identifier";						
+						type leafref {
+						path "/ncs:devices/ncs:device[ncs:name=current()/../../../device-name]/ncs:config/ios:interface/ios:GigabitEthernet/ios:name";	
+	                        				
+						}
+						must "starts-with(current(),'3')"{
+							error-message "Only LAN interaface can be selected.";
+							}
+					}
+				}
+          		list neighbor {                         // Need to check Cisco IOS NED
+					tailf:info "EIGRP static neighbors";
+          			key ip-address;
+					leaf ip-address {
+                       tailf:info "EIGRP static neighbor";
+                        type inet:ipv4-address;
+                    }
+          			leaf interface-id {
+                        tailf:info "EIGRP neighbor interface";
+                        type leafref {
+						path "/ncs:devices/ncs:device[ncs:name=current()/../../../device-name]/ncs:config/ios:interface/ios:GigabitEthernet/ios:name";	
+	                        				
+						}
+						must "starts-with(current(),'3')"{
+						error-message "Only LAN interaface can be selected.";
+						}
+          			}
+          		}
+                
+// megapop l2nid-mpls-csr eigrp redistribute
+
+                uses redistribution-grouping;
+
+                container metric {          // Requires Cisco IOS NED version 4.3.7 ?
+                    container weights {
+                        tailf:info "Modify metric coefficients";
+                        leaf tos {
+                            tailf:cli-drop-node-name;
+                            type uint8 {
+                                tailf:info "<0-8>;;Type (Only TOS 0 supported)";
+                                range "0..8";
+                            }
+                        default 0;
+                        }
+                        leaf k1 {
+                            type uint8 {
+                                tailf:info "<0-255>;;K1";
+                            }
+                        default 1;
+                        }
+                        leaf k2 {
+                            type uint8 {
+                                tailf:info "<0-255>;;K2";
+                            }
+                        default 0;
+                        }
+                        leaf k3 {
+                            type uint8 {
+                                tailf:info "<0-255>;;K3";
+                            }
+                        default 1;
+                        }
+                        leaf k4 {
+                            type uint8 {
+                                tailf:info "<0-255>;;K4";
+                            }
+                        default 0;
+                        }
+                        leaf k5 {
+                            type uint8 {
+                                tailf:info "<0-255>;;K5";
+                            }
+                        default 0;
+                        }
+                    }
+                }
+          	}
+				
+// Qos configuration
+            container qos {
+                list class-map {
+                    description "Class map";
+                    key name;
+
+                    leaf name {
+                        tailf:info "WORD;;Name of the class map";
+                        type string;
+                    }
+                    leaf match-type {
+                        tailf:info "By default, match-type will be match-all";
+                        type nfvt:qos-match-type;
+                        default match-all;
+                    }
+                    list precedence {
+                        key value;
+                        leaf value {
+                        tailf:info "Match IPP values, <0..7> Precendence value;;";
+                        type uint16 {
+                            range "0..7";
+                            }
+                        }
+                        max-elements 4;
+                    }
+                    list dscp {
+                        key value;
+                        leaf value
+                        {
+                        tailf:info "Match IP DSCP (DiffServ code points), <0..63> DSCP Value;;";
+                        type uint16 {
+                            range "0..63";
+                        }
+                        }
+                        max-elements 8;
+                    }
+                    leaf protocol {
+                        tailf:info "Application protocol";
+                        type string {
+                            tailf:info "WORD;;Protocol name or blank to specify no match on protocol";
+                        }
+                    }
+                    leaf input-interface {
+                        tailf:info "Classify based on incoming LAN interface";
+                        type leafref {
+						path "/ncs:devices/ncs:device[ncs:name=current()/../../../device-name]/ncs:config/ios:interface/ios:GigabitEthernet/ios:name";		                        				
+						}
+						must "starts-with(current(),'3')"{
+							error-message "Only LAN interaface can be selected.";
+						}
+                    }
+                    leaf access-list {
+                        tailf:info "Classify based on access list";
+                        tailf:non-strict-leafref {
+                            path "/nfv:megapop/l2nid-mpls-csr/access-list/extended/ext-named-acl/name";
+                        }
+                        type string {
+                            tailf:info "WORD;;Name of an extended access list or blank to specify no match on access-list";
+                        }
+                    }
+                }
+
+                list policy-map {
+                    description "This is a list of policy maps to be configured";
+                    key name;
+
+                    leaf name {
+                        tailf:info "Name of the policy map";
+                        type string;
+                    }
+                    leaf description {
+                        tailf:info "Policy map description";
+                        type string;
+                    }
+                    list class {
+                        key class-map-name;
+                        ordered-by user;
+                        max-elements 8;
+                 
+                        leaf class-map-name {
+                            tailf:info "Name of the class map to match the precedence value";
+                            type leafref {
+                                path "../../../../nfv:qos/nfv:class-map/nfv:name";
+                            }
+                        }
+                        leaf precedence {
+                            type union {
+                                type enumeration {
+                                    enum none {
+                                        tailf:info "Do not set precedence value";
+                                    }
+                                }
+                                type uint16 {
+                                    tailf:info "<0..5>;;Precendence value";
+                                    range "0..5";
+                                }
+                            }
+                        }
+
+                        container bandwidth {
+                            leaf "type" {
+                                tailf:info "Bandwidth scheduling type";
+                                type enumeration {
+                                    enum none {
+                                        tailf:info "No bandwidth scheduling";
+                                    }
+                                    enum kbps {
+                                        tailf:info "Bandwidth in kbps";
+                                    }
+                                    enum percent {
+                                        tailf:info "Percent of bandwidth";
+                                    }
+                                    enum remaining {
+                                        tailf:info "Percent of remaining bandwidth";
+                                    }
+                                }
+                            }
+
+                            leaf bandwidth-kbps {
+                                when "../type = 'kbps'" {
+                                    tailf:dependency "../type";
+                                    }
+                                type uint32 {
+                                    tailf:info "<0-10000000>;;Bandwidth allowed per class. Specified in kbps.";
+                                    range "0..10000000";
+                                }
+                            }
+                            leaf bandwidth-percent {
+                                when "../type = 'percent'" {
+                                    tailf:dependency "../type";
+                                    }
+                                type uint16 {
+                                    tailf:info "<0..100>;;Bandwidth allowed per class. Specified in percent";
+                                    range "0..100";
+                                }
+                            }
+                            leaf bandwidth-percent-remaining {
+                                when "../type = 'remaining'" {
+                                    tailf:dependency "../type";
+                                    }
+                                type uint16 {
+                                    tailf:info "<0..100>;;Bandwidth allowed per class. Specified in terms of remaining available bandwidth";
+                                    range "0..100";
+                                }
+                            }
+                        }
+
+                        leaf queue-limit {
+                            type union {
+                                type enumeration {
+                                    enum none {
+                                        tailf:info "Do not set queue-linit value";
+                                    }
+                                }
+                                type uint64 {
+                                    tailf:info "<1-8192000>;;Queue limit for a class";
+                                    range "1..8192000";
+                                }
+                            }
+                        }
+                    }
+
+                    container class-default {
+                        leaf shape-average-bandwidth {
+                            type union {
+                                type enumeration {
+                                    enum none {
+                                        tailf:info "Do not set queue-linit";
+                                    }
+                                }
+                                type uint64 {
+                                    tailf:info "<8000-Interface BW>;;Bandwidth to which traffic is to be shaped. Specified in bits per second (bps)";
+                                }
+                            }
+                        }
+                        leaf service-policy-name {
+                            tailf:info "Service policy for traffic to be shaped";
+                            tailf:non-strict-leafref {
+                                path "/nfv:megapop/l2nid-mpls-csr/qos/policy-map/name";
+                            }
+                            type string {
+                                tailf:info "WORD;;Name of a service policy or blank to specify no service policy";
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ************************************************* 1.1.2.2	LAN IP Assignment DHCP with Options starts *************************************************
+            list dhcp-param {
+                tailf:info "DHCP server configuration options";
+               key "interface-id"; 
+
+                leaf interface-id {
+                    tailf:info "Interface identifier";
+       					tailf:cli-suppress-range;
+					type leafref {
+						path "/ncs:devices/ncs:device[ncs:name=current()/../../device-name]/ncs:config/ios:interface/ios:GigabitEthernet/ios:name";		                        				
+					}
+                }
+				leaf modify-dhcp-param {
+				    tailf:info "Default config for DHCP or not";
+					type enumeration {
+					enum Yes {
+					tailf:info "Yes - go with user defined";
+					}
+						enum No {
+					tailf:info "No - go with default config";
+					}
+					enum No-DHCP {
+					tailf:info "Dont configure DHCP";
+					  }
+					}
+				}
+                list exclude-address {
+               				tailf:info "DHCP exclude address list";
+					when "../modify-dhcp-param = 'Yes'" {
+						tailf:dependency "../modify-dhcp-param";
+					}
+            		    		key "start-address";
+					leaf start-address {
+                   				tailf:info "IPv4 Address;;Exclude range start address";
+						tailf:cli-suppress-range;
+						type inet:ipv4-address;
+					}
+ 					leaf end-address {
+                   				tailf:info "IPv4 Address;;Exclude range end address";
+						type inet:ipv4-address;
+					}
+				}
+
+                leaf lan-network {
+                    tailf:info "DHCP Network Address";
+                    when "../modify-dhcp-param='Yes'" {
+                        tailf:dependency ".";
+                        tailf:dependency "../modify-dhcp-param";
+                    }
+                    type tailf:ipv4-address-and-prefix-length;
+                }
+
+                leaf default-router {
+                    tailf:info "DHCP default router Address";
+                    when "../modify-dhcp-param='Yes'" {
+                        tailf:dependency ".";
+                        tailf:dependency "../modify-dhcp-param";
+                    }
+                    type inet:ipv4-address;
+                }
+
+                leaf domain-name {
+                    tailf:info "Domain Name for DHCP Pool";
+                    when "../modify-dhcp-param='Yes'" {
+                        tailf:dependency ".";
+                        tailf:dependency "../modify-dhcp-param";
+                    }
+                    type string;
+                }
+                list dns-server {
+					tailf:info "DHCP domain name server list";
+					when "../modify-dhcp-param = 'Yes'" {
+                        tailf:dependency "../modify-dhcp-param";
+                    }
+					ordered-by user;
+					min-elements 0;
+					max-elements 8;
+					key ip-address;
+					leaf ip-address {
+					tailf:info "A.B.C.D;;Server's IP address";
+					type inet:ipv4-address;
+					}
+				}
+
+				list netbios-server {
+					tailf:info "DHCP NetBIOS server list";
+					when "../modify-dhcp-param = 'Yes'" {
+					tailf:dependency "../modify-dhcp-param";
+				}
+					ordered-by user;
+					min-elements 0;
+					max-elements 8;
+					key ip-address;
+					leaf ip-address {
+					tailf:info "A.B.C.D;;Server's IP address";
+					type inet:ipv4-address;
+					}
+				}
+                list option {
+               				tailf:info "DHCP options list";
+ 					when "../modify-dhcp-param = 'Yes'" {
+						tailf:dependency "../modify-dhcp-param";
+					}
+                			key code;
+					leaf code {
+                   				type uint8 {
+                   					tailf:info "<0-254>;;DHCP option code";
+							range "0 .. 254";
+						}
+					}
+					leaf instance {
+                   				tailf:info "Specify the option instance";
+                   				type uint8 {
+                   					tailf:info "<0-255>;;DHCP option instance";
+							range "0 .. 255";
+						}
+					}					
+					leaf ascii {
+						tailf:info "Data is an NVT ASCII string";
+						type string {
+							tailf:info "LINE;;NVT ASCII string";
+						}
+					}
+					leaf hex {
+						tailf:info "Data is a hexadecimal string";
+ 						type union {
+							type string {
+ 								tailf:info "LINE;;Hexadecimal string";
+							}
+							type enumeration {
+								enum none {
+									tailf:info "No data";
+								}
+							}
+						}
+					}
+					leaf-list ip {
+						tailf:info "Data is one or more IP addresses";
+						tailf:cli-flat-list-syntax;
+						type inet:host {
+							tailf:info "Hostname or A.B.C.D;;Server's name or IP address";
+						}
+					}
+				}
+           }
+            // ************************************************* 1.1.2.2	LAN IP Assignment DHCP with Options ends ***************************************************************
+
+            // ************************************************* 1.1.2.4	NAT/PAT configuration starts here ***************************************************************
+            leaf nat-feature {
+                tailf:info "NAT feature enable/disable";
+                type enumeration {
+                    enum enable {
+                        tailf:info "enable address translation";
+                    }
+                    enum disable {
+                        tailf:info "diable address translation";
+                    }
+                }
+            }
+			leaf nat-interface-id{
+				type leafref 
+					{
+						path "/ncs:devices/ncs:device[ncs:name=current()/../device-name]/ncs:config/ios:interface/ios:GigabitEthernet/ios:name";					
+					}
+			}
+            container nat-param {
+
+                tailf:info "Static NAT configuration";
+
+                list nat-list {
+                    key "nat-seq-no nat-direction";
+
+                    leaf nat-seq-no {
+                        tailf:info "NAT rule sequence number";
+                        type uint16;
+                    }
+
+                    leaf static-nat-type {
+                        tailf:info "Static NAT type selection";
+                        type enumeration {
+                            enum host {
+                                tailf:info "Host type";
+                            }
+                            
+                        }
+                    }
+
+                    leaf nat-direction {
+                        tailf:info "NAT Direction";
+                        type enumeration {
+                            enum inside {
+                                tailf:info "Inside address translation";
+                            }
+                            enum outside {
+                                tailf:info "outside address translation";
+                            }
+                        }
+                    }
+
+                    leaf nat-protocol {
+                        tailf:info "protocol";
+                        when "../static-nat-type='host'" {
+                            tailf:dependency ".";
+                            tailf:dependency "../static-nat-type";
+                        }
+                        type enumeration {
+                            enum tcp {
+                                tailf:info "TCP";
+                            }
+                            enum udp {
+                                tailf:info "UDP";
+                            }
+							 enum none {
+                             	tailf:info "None";
+                             }
+                        }
+                    }
+
+                    leaf local-ip {
+                        tailf:info "Inside global IP address";
+                        when "../static-nat-type='host'" {
+                            tailf:dependency ".";
+                            tailf:dependency "../static-nat-type";
+                        }
+                        type inet:ipv4-address;
+                    }
+
+                    leaf local-port {
+                        tailf:info "Local UDP/TCP port";
+                         when "(../nat-protocol='tcp' or ../nat-protocol='udp') and ../static-nat-type='host'";
+                        type uint16;
+                    }
+
+                    leaf global-ip {
+                        tailf:info "Inside global IP address";
+                        when "../static-nat-type='host'" {
+                            tailf:dependency ".";
+                            tailf:dependency "../static-nat-type";
+                        }
+                        type inet:ipv4-address;
+                    }
+
+                    leaf global-port {
+                        tailf:info "Inside global IP address";
+                         when "(../nat-protocol='tcp' or ../nat-protocol='udp') and ../static-nat-type='host'";
+
+                        type uint16;
+                    }
+
+                    leaf local-network {
+                        tailf:info "Inside global IP address";
+                        when "../static-nat-type='network'" {
+                            tailf:dependency ".";
+                            tailf:dependency "../static-nat-type";
+                        }
+                        type inet:ipv4-address;
+                    }
+
+                    leaf global-network {
+                        tailf:info "Inside global IP address";
+                        when "../static-nat-type='network'" {
+                            tailf:dependency ".";
+                            tailf:dependency "../static-nat-type";
+                        }
+                        type inet:ipv4-address;
+                    }
+
+                    leaf prefix-length {
+                        tailf:info "Prefix length applicable if nat type is network";
+                        when "../static-nat-type='network'" {
+                            tailf:dependency ".";
+                            tailf:dependency "../static-nat-type";
+                        }
+                        type uint16;
+                    }
+
+                    leaf no-payload {
+                        tailf:info "no payload option";
+                        type enumeration {
+                            enum true {
+                                tailf:info "no payload true";
+                            }
+                            enum false {
+                                tailf:info "no payload false";
+                            }
+                        }
+                    }
+                }
+            }
+            // Day 2 NAT ends here
+
+            // Day 2 PAT starts here
+            container pat-param {
+
+                tailf:info "PAT overload configuration";
+
+                list pat-list {
+                    key "pat-seq-no";
+
+                    leaf pat-seq-no {
+                        tailf:info "Sequence Number for PAT";
+                        type uint16;
+                    }
+
+                    leaf source-list-name {
+                        tailf:info "Name of the ip access-list";
+                        type string;
+                        default "acl-pat-inside-source";
+                    }
+
+                    leaf local-ip-any {
+                        tailf:info "Permit or Deny - Any IP";
+                        type enumeration {
+                            enum true {
+                                tailf:info "Permit Any";
+                            }
+                            enum false {
+                                tailf:info "Deny Action";
+                            }
+                        }
+                    }
+
+                    leaf local-ip-subnet {
+                        tailf:info "network address or host ip address of source";
+                        when "../local-ip-any='false'" {
+                            tailf:dependency ".";
+                            tailf:dependency "../local-ip-any";
+                        }
+                        type tailf:ipv4-address-and-prefix-length;
+                    }
+
+                    leaf pat-direction {
+                        tailf:info "PAT Direction";
+                        type enumeration {
+                            enum inside {
+                                tailf:info "Inside address translation";
+                            }
+                            enum outside {
+                                tailf:info "outside address translation";
+                            }
+                        }
+                    }
+
+                    leaf pat-action {
+                        tailf:info "Permit or Deny - PAT";
+
+                        type enumeration {
+                            enum permit {
+                                tailf:info "Permit Action";
+                            }
+                            enum deny {
+                                tailf:info "Deny Action";
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Day 2 PAT ends here
+
+            // ************************************************* 1.1.2.4	NAT/PAT configuration ends here *************************************************************** 
+
+
+// megapop l2nid-mpls-csr access-list
+
+           container access-list {
+
+                container standard {
+                    list std-named-acl {
+                        key name;
+                        leaf name {
+                            type string {
+                                tailf:info "WORD;;ACL name";
+                            }
+                        }
+                        leaf admin-state {
+                            tailf:info "Enable or disable ACL";
+                            type nfvt:disable-enable;
+                            default enable;
+                        }
+                        list rule  {
+                            tailf:info "Standard ACL rule";
+                            key seq-no;
+                            leaf seq-no {
+                                type uint32 {
+                                    tailf:info "<1-2147483647>;;Rule sequence number";
+                                    range "1..2147483647";
+                                }
+                            }
+                            leaf action {
+                                tailf:info "permit | deny;;Rule action";
+                                type nfvt:action-deny-permit;
+                            }
+                            leaf source {
+                                type nfvt:ip-network-host-any-type;
+                            }
+                        }
+                    }
+                }
+
+                container extended {
+                    list ext-named-acl {
+                        tailf:info "Extended ACL";
+                        key name;
+                        leaf name {
+                            type string {
+                                tailf:info "WORD;;ACL name";
+                            }
+                        }
+                        leaf admin-state {
+                            tailf:info "Enable or disable ACL";
+                            type nfvt:disable-enable;
+                            default enable;
+                        }
+                        list rule  {
+                            tailf:info "Extended ACL rule";
+                            key seq-no;
+                            leaf seq-no {
+                                type uint32 {
+                                    tailf:info "<1-2147483647>;;Rule sequence number";
+                                    range "1..2147483647";
+                                }
+                            }
+                            leaf action {
+                                tailf:info "permit | deny;;Rule action";
+                                type nfvt:action-deny-permit;
+                            }
+                            leaf protocol {
+                                tailf:info "Access control entry protocol";
+                                type nfvt:internet-protocol-type;
+                                default ip;
+                                }
+
+                            leaf source {
+                                tailf:info "Access control entry source";
+                                type nfvt:ip-network-host-any-type;
+                            }
+                            leaf source-port-op {
+                                tailf:info "Access control entry source port operator";
+                                when "../protocol = 'tcp' or ../protocol=6 or ../protocol='udp' or ../protocol=17" {
+                                    tailf:dependency "../protocol";
+                                    }
+                                type nfvt:ip-port-operator-type;
+                            }
+                            leaf source-port {
+                                tailf:info "Access control entry source port";
+                                when "(../protocol = 'tcp' or ../protocol=6 or ../protocol='udp' or ../protocol=17) and ../source-port-op != 'none'" 
+                                {
+                                    tailf:dependency "../protocol";
+                                    tailf:dependency "../source-port-op";
+                                    }
+                                type uint16 {
+                                    tailf:info "<1-65535>;;Port number";
+                                }
+                            }
+                            leaf source-port-last {
+                                tailf:info "Access control entry source port range last port";
+                                when "(../protocol = 'tcp' or ../protocol=6 or ../protocol='udp' or ../protocol=17) and ../source-port-op = 'range'" {
+                                    tailf:dependency "../protocol";
+                                    tailf:dependency "../source-port-op";
+                                }
+                                type uint16 {
+                                    tailf:info "<1-65535>;;Port number";
+                                }
+                            }
+                            leaf destination {
+                                tailf:info "Access control entry destination";
+                                type nfvt:ip-network-host-any-type;
+                            }
+                            leaf destination-port-op {
+                                tailf:info "Access control entry destination port operator";
+                                when "../protocol = 'tcp' or ../protocol=6 or ../protocol='udp' or ../protocol=17" {
+                                    tailf:dependency "../protocol";
+                                    }
+                                type nfvt:ip-port-operator-type;
+                            }
+                            leaf destination-port {
+                                tailf:info "Access control entry destination port";
+                                when "(../protocol = 'tcp' or ../protocol=6 or ../protocol='udp' or ../protocol=17) and ../destination-port-op != 'none'" {
+                                    tailf:dependency "../protocol";
+                                    tailf:dependency "../destination-port-op";
+                                    }
+                                type uint16 {
+                                    tailf:info "<1-65535>;;Port number";
+                                }
+                            }
+                            leaf destination-port-last {
+                                tailf:info "Access control entry destination port range last port";
+                                when "(../protocol = 'tcp' or ../protocol=6 or ../protocol='udp' or ../protocol=17) and ../destination-port-op = 'range'" {
+                                    tailf:dependency "../protocol";
+                                    tailf:dependency "../destination-port-op";
+                                }
+                                type uint16 {
+                                    tailf:info "<1-65535>;;Port number";
+                                }
+                            }
+
+                            container icmp 
+                            {
+                                tailf:info "Access control entry ICMP parameters";
+                                when "../protocol='icmp' or ../protocol=1" {
+                                    tailf:dependency "../protocol";
+                                }
+                                leaf "type" {
+                                    tailf:info "<0-255>;;ICMP type";
+                                    type uint16;
+                                }
+                                choice icmp-code-message
+                                {
+                                    leaf code
+                                    {
+                                        tailf:info "<0-255>;;ICMP code";
+                                        type uint16;
+                                    }
+                                    leaf message
+                                    {
+                                        tailf:info "ICMP message";
+                                        type string;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                leaf acl-feature {
+                    tailf:info "Access Control list feature enable/disable";
+                    type enumeration {
+                        enum enable {
+                            tailf:info "enable address translation";
+                        }
+                        enum disable {
+                            tailf:info "disable address translation";
+                        }
+                    }
+                }
+                list access-list-members {
+                    tailf:info "Access List members";
+                    key "acl-seq-no acl-direction acl-interface-id";
+
+                    leaf acl-seq-no {
+                        tailf:info "Sequence Number for access list";
+                        type uint16;
+                    }
+                    leaf acl-interface-id {
+				
+					tailf:info "Interface identifier";
+					tailf:cli-suppress-range;
+					type leafref {					
+						path "/ncs:devices/ncs:device[ncs:name=current()/../../../device-name]/ncs:config/ios:interface/ios:GigabitEthernet/ios:name";
+	                        				
+						}
+					}
+                    leaf acl-action {
+                        tailf:info "acceess list action";
+                        type enumeration {
+                            enum permit {
+                                tailf:info "Specify packets to permit";
+                            }
+                            enum deny {
+                                tailf:info "Specify packets to reject";
+                            }
+                        }
+                    }
+                    leaf acl-protocol {
+                        tailf:info "Access control entry protocol";
+	    				type nfvt:internet-protocol-type;
+	  					default ip;
+					}
+                    leaf source-any {
+                        tailf:info "Source ACL - Any IP";
+                        type enumeration {
+                            enum true {
+                                tailf:info "Permit Any";
+                            }
+                            enum false {
+                                tailf:info "Deny Action";
+                            }
+                        }
+                    }
+                    leaf destination-any {
+                        tailf:info "Destination ACL - Any IP";
+                        type enumeration {
+                            enum true {
+                                tailf:info "Permit Any";
+                            }
+                            enum false {
+                                tailf:info "Deny Action";
+                            }
+                        }
+                    }
+                    leaf source-ip {
+                        tailf:info "Specify the source IP address for ACL";
+						 when "../source-any='false'" {
+                        tailf:dependency ".";
+                        tailf:dependency "../source-any";
+                        }
+                        type tailf:ipv4-address-and-prefix-length;
+                    }
+
+                    leaf destination-ip {
+                        tailf:info "Specify the destination IP address ACL";
+						 when "../destination-any='false'" {
+                        tailf:dependency ".";
+                        tailf:dependency "../destination-any";
+                        }
+                        type tailf:ipv4-address-and-prefix-length;
+                    }
+
+                    leaf icmp-type {
+                        tailf:info "Number from 0 to 255";
+                        when "../acl-protocol='icmp'" {
+                            tailf:dependency ".";
+                            tailf:dependency "../accesslist-protocol";
+                        }
+                        type uint16;
+                    }
+                    leaf icmp-code {
+                        tailf:info "Number from 0 to 255";
+                        when "../acl-protocol='icmp'" {
+                            tailf:dependency ".";
+                            tailf:dependency "../accesslist-protocol";
+                        }
+                        type uint16;
+                    }
+                    leaf icmp-message {
+                        tailf:info "ICMP message";
+                        when "../acl-protocol='icmp'" {
+                            tailf:dependency ".";
+                            tailf:dependency "../accesslist-protocol";
+                        }
+                        type string;
+                    }
+					
+					leaf source-port {
+					when "../acl-protocol = 'tcp' or ../acl-protocol='udp'";
+                        type union {                   
+                   		 type uint16 {
+								tailf:info "source port number Range <1-65535>";
+								 }
+									  
+						 type enumeration {
+								enum none {
+									tailf:info "No port value";
+										}
+								}                       
+                        }
+                    }
+                    leaf destination-port {
+					when "../acl-protocol = 'tcp' or ../acl-protocol='udp'";
+                        type union {                   
+                   		 type uint16 {
+								tailf:info "destination port number Range <1-65535>";
+								 }									  
+						 type enumeration {
+								enum none {
+									tailf:info "No port value";
+										}
+								}                       
+                        }
+                    }
+                    leaf source-operator {					
+                        tailf:info "ACL source operator";
+						when "../acl-protocol = 'tcp' or ../acl-protocol='udp'";
+                        type enumeration {
+                            enum lt {
+                                tailf:info "lt (less than)";
+                            }
+                            enum gt {
+                                tailf:info "gt (greater than)";
+                            }
+                            enum eq {
+                                tailf:info "eq (equal)";
+                            }
+                            enum neq {
+                                tailf:info "neq (not equal)";
+                            }
+                            enum range {
+                                tailf:info "range(inclusive range)";
+                            }
+							enum none{
+							  	tailf:info "No operator";
+							}
+                        }
+                    }
+
+                    leaf destination-operator {
+                        tailf:info "ACL destination operator";
+							when "../acl-protocol = 'tcp' or ../acl-protocol='udp'";
+
+                        type enumeration {
+                            enum lt {
+                                tailf:info "lt (less than)";
+                            }
+                            enum gt {
+                                tailf:info "gt (greater than)";
+                            }
+                            enum eq {
+                                tailf:info "eq (equal)";
+                            }
+                            enum neq {
+                                tailf:info "neq (not equal)";
+                            }
+                            enum range {
+                                tailf:info "range(inclusive range)";
+                            }
+							enum none{
+							  	tailf:info "No operator";
+							}
+                        }
+                    }
+                    leaf acl-direction {
+                        tailf:info "ACL direction";
+                        type enumeration {
+                            enum in {
+                                tailf:info "Specify packets to permit";
+                            }
+                            enum out {
+                                tailf:info "Specify packets to reject";
+                            }
+                        }
+                    }
+                }
+               
+            }
+            // Day 2 ACL ends here
+
+            //**************************************************ACL configuration ends here *************************************************************************
+            container topology {
+                container lan-connection {
+                    uses service-connection-grouping;
+                }
+                container wan-connection {
+                    uses service-connection-grouping;
+                }
+            }
+
+                leaf deploy-status {
+                    type nfvt:service-status;
+                }
+                // deployment status
+                
+                leaf operational-status
+                {
+                    config false;
+                    type string;
+                }
+
+				leaf device-name {
+                tailf:info "Name of the Megapop L2NID services";
+                type string;
+          		  } 
+
+                tailf:action status {
+                    tailf:info "Report service deployment status";
+                    tailf:actionpoint status-action;
+                    output {
+                        leaf deployment-status {
+                            type string;
+                            description "Free format message.";
+                        }
+                    }
+			}
+ 		}          
+	}
+	
+}

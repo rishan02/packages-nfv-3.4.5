@@ -1,0 +1,47 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+<devices xmlns="http://tail-f.com/ns/ncs">
+<device>
+			<name>{$device}</name>
+			<config>
+			<hostname xmlns="urn:ios">{$hostname}</hostname>
+    <interface xmlns="urn:ios">
+        <GigabitEthernet>
+            <name>{$name2}</name>
+            <description>{$desc2}</description>
+            <ip>
+                <address>
+                    <primary>
+                        <mask>{$mask2}</mask>
+                        <address>{$address2}</address>
+                    </primary>
+                </address>
+            </ip>
+        </GigabitEthernet>
+    </interface>
+    <interface xmlns="urn:ios">
+        <GigabitEthernet>
+            <name>{$name}</name>
+            <description>{$desc}</description>
+            <ip>
+                <address>
+                    <primary>
+                        <mask>{$mask}</mask>
+                        <address>{$address}</address>
+                    </primary>
+                </address>
+            </ip>
+        </GigabitEthernet>
+    </interface>
+    <ip xmlns="urn:ios">
+    <route>
+      <ip-route-interface-list>
+        <prefix>{$prefixroute}</prefix>
+        <mask>{$maskroute}</mask>
+        <interface>{$nicidgateway}</interface>
+      </ip-route-interface-list>
+    </route>
+  </ip>
+    </config>
+    </device>
+    </devices>
+</config-template>

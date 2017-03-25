@@ -1,0 +1,58 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config>
+				<router xmlns="urn:ios" when="{$IPADDRESS !='' and /eigrp[number($eigrpCounter)]/interface/interface-id !='' and /eigrp/admin-state='enable'}">
+					<eigrp>
+						<as-no>{/eigrp[number($eigrpCounter)]/as-number}</as-no>
+						<eigrp when="{/eigrp/router-id !=''}">
+        					<router-id>{router-id}</router-id>
+      					</eigrp>
+						<network when="{$IPADDRESS !='' and $MASK!=''}">
+							<ip>{$IPADDRESS}</ip>
+							<mask>{$MASK}</mask>
+						</network>
+						<passive-interface>
+							<default />
+						</passive-interface>
+						<disable>
+				<passive-interface>
+					<interface>GigabitEthernet{interface/interface-id}</interface>
+				</passive-interface>			
+				</disable>
+				<neighbor>				
+        		    <neighbor-list>
+          			    <address>{neighbor/ip-address}</address>
+          			    <interface>GigabitEthernet{neighbor/interface-id}</interface>
+        			</neighbor-list>					
+				</neighbor>				
+				<auto-summary when="{auto-summary='enable'}"/>
+				<redistribute>
+				<connected when="{redistribute/connected/route-map-name !=''}">
+					<route-map>{redistribute/connected/route-map-name}</route-map>
+				</connected>
+				<static when="{redistribute/static/route-map-name !=''}">
+					<route-map>{redistribute/static/route-map-name}</route-map>
+				</static>
+				<bgp when="{redistribute/bgp/route-map-name !=''}">
+					<route-map>{redistribute/bgp/route-map-name}</route-map>
+					<as-no>{redistribute/bgp/as-number}</as-no>
+				</bgp>
+				</redistribute>
+				<metric when="{metric/weights/tos ='0'}">
+					<weights>
+						<k1 when="{metric/weights/k1 !=''}">{metric/weights/k1}</k1>
+						<k4 when="{metric/weights/k4 !=''}">{metric/weights/k4}</k4>
+						<k2 when="{metric/weights/k2 !=''}">{metric/weights/k2}</k2>
+						<k5 when="{metric/weights/k5 !=''}">{metric/weights/k5}</k5>
+						<tos>{metric/weights/tos}</tos>
+						<k3 when="{metric/weights/k3!=''}">{metric/weights/k3}</k3>
+					</weights>
+				</metric>
+					</eigrp>
+				</router>
+			</config>
+		</device>
+	</devices>
+</config-template>

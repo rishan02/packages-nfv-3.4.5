@@ -1,0 +1,292 @@
+module nfv-types {
+  namespace "http://com/singtel/nfv-types";
+
+  prefix nfv-types;
+
+    import ietf-inet-types { prefix inet; }
+    import tailf-common { prefix tailf; }
+
+	typedef disable-enable {
+		type enumeration {
+			enum disable {
+				tailf:info "disable - Disable";
+			}
+			enum enable {
+				tailf:info "enable - Enable";
+			}
+		}
+	}
+	
+	typedef lan-interface-id-none-type {
+		 tailf:info "LAN Interface identifier type";
+		 type enumeration {
+		  enum none {
+		   tailf:info "No local area network interface";
+		  }
+		  enum lan1 {
+		   tailf:info "Local area network interface 1";
+		  tailf:code-name "qos-lan1";
+		  }
+		  enum lan2 {
+		   tailf:info "Local area network interface 2";
+		  tailf:code-name "qos-lan2";
+		  }
+		 }
+		}
+
+	 typedef qos-match-type {
+		  type enumeration {
+		   enum match-all {
+		    tailf:info "match-all";
+		   }
+		   enum match-any {
+		    tailf:info "match-any";
+		   }
+		  }
+		 }
+
+	typedef action-deny-permit {
+		type enumeration {
+			enum deny {
+				tailf:info "deny - Deny action";
+			}
+			enum permit {
+				tailf:info "permit - Permit action";
+			}
+		}
+	}
+
+    typedef flow-direction-type {
+        tailf:info "Flow direction";
+        type enumeration {
+            enum ingress {
+                tailf:info "Ingress flow";
+            }
+            enum egress {
+                tailf:info "Egress flow";
+            }
+		}
+	}
+
+  typedef service-status {
+    type enumeration {
+      enum in-progress {
+        tailf:info "Service creation in progress";
+      }
+      enum operational {
+        tailf:info "Service is operational";
+      }
+      enum non-operational {
+        tailf:info "Service is not operational";
+      }
+    }
+  }
+
+  typedef recovery-status {
+    type enumeration {
+      enum complete-success {
+        tailf:info "ESC successfully restarted the VM";
+      }
+      enum complete-failure {
+        tailf:info "ESC tried to restart the VM but failed";
+      }
+      enum undeployed {
+        tailf:info "ESC has undeployed the VM";
+      }
+    }
+  }
+  
+	typedef access-service-type-type {
+		tailf:info "Access service type";
+		type enumeration {
+			enum megapop {
+				tailf:info "Singtel Megapop service";
+			}
+			enum cplus {
+				tailf:info "Singtel CPlus service";
+			}
+			enum singnet {
+				tailf:info "Singtel SingNet service";
+			}
+		}
+	}
+	
+
+	typedef lan-interface-id-type {
+		tailf:info "LAN Interface identifier type";
+		type enumeration {
+			enum lan1 {
+				tailf:info "Local area network interface 1";
+			}
+			enum lan2 {
+				tailf:info "Local area network interface 2";
+			}
+		}
+	}
+
+	typedef interface-id-type {
+		tailf:info "Interface identifier type";
+		type enumeration {
+			enum wan1 {
+				tailf:info "Wide area network interface 1";
+			}
+			enum wan2 {
+				tailf:info "Wide area network interface 2";
+			}
+			enum lan1 {				
+				tailf:info "Local area network interface 1";
+				tailf:code-name "int-lan1";
+			}
+			enum lan2 {				
+				tailf:info "Local area network interface 2";
+				tailf:code-name "int-lan2";
+			}
+		}
+	}
+	
+	typedef mac-address {
+     type string {
+       pattern '[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}';
+     }
+  
+       
+     }
+    typedef internet-protocol-type {
+		tailf:info "Internet protocol";
+		type union {
+			type uint16 {
+				tailf:info "Internet Protocol Number";
+ 				range "0..255";
+			}
+			type enumeration {
+				enum ip {
+					tailf:info "Internet Protocol";
+				}
+				enum icmp {
+					tailf:info "Internet Control Message Protocol";
+					value 1;
+				}
+				enum igmp {
+					tailf:info "Internet Group Management Protocol";
+					value 2;
+				}
+				enum ipinip {
+          				tailf:info "IP in IP encapsulation";
+					value 4;
+				}
+				enum tcp {
+					tailf:info "Transmission Control Protocol";
+ 					value 6;
+				}
+				enum udp {
+					tailf:info "User Datagram Protocol";
+					value 17;
+				}
+				enum gre {
+					tailf:info "Generic Routing Protocol";
+ 					value 47;
+				}
+				enum esp {
+					tailf:info "Encapsulation Security Payload";
+ 					value 50;
+				}
+				enum ahp {
+					tailf:info "Authentication Header Protocol";
+ 					value 51;
+				}
+				enum eigrp {
+					tailf:info "Enhanced Interior Gateway Routing Protocol";
+					value 88;
+				}
+				enum ospf {
+					tailf:info "Open Shortest Path First";
+					value 89;
+				}
+				enum nos {
+					tailf:info "Network Operating System";
+ 					value 94;
+        			}
+				enum pim {
+					tailf:info "Protocol Independent Multicast";
+					value 103;
+				}
+				enum pcp {
+					tailf:info "Payload Compression Protocol";
+ 					value 108;
+				}
+			}
+		}
+	}
+
+	
+	typedef ip-network-host-any-type {
+		tailf:info "Internet protocol";
+		type union {
+            type tailf:ipv4-address-and-prefix-length {
+                tailf:info "Network address";
+            }
+            type inet:ipv4-address {
+                tailf:info "Host address";
+            }
+			type enumeration {
+				enum any {
+					tailf:info "Any address";
+                }
+            }
+        }
+    }
+
+	typedef ip-network-none-type {
+		tailf:info "Internet protocol";
+		type union {
+            type tailf:ipv4-address-and-prefix-length {
+                tailf:info "Network address";
+            }
+			type enumeration {
+				enum none {
+					tailf:info "No address";
+				}
+            }
+		}
+	}
+
+	typedef time-string-none-type {
+        tailf:info "Time";
+        type union {
+            type enumeration {
+				enum none {
+					tailf:info "Set no time";
+				}
+				//enum now {
+				//	tailf:info "Set time to now";
+				//}
+           }
+            type string {
+                tailf:info "HH:MM:SS Mon DD YYYY;;Time";
+            }
+		}
+	}
+	typedef ip-port-operator-type {
+		tailf:info "Port comparison operator";
+        type enumeration {
+            enum none {
+                tailf:info "No Operator";
+            }
+            enum eq {
+                tailf:info "Equal to operator";
+            }
+            enum neq {
+                tailf:info "Not equal to operator";
+            }
+            enum lt {
+                tailf:info "Less than operator";
+            }
+            enum gt {
+                tailf:info "Greater than operator";
+            }
+            enum range {
+                tailf:info "Range operator";
+            }
+        }
+    }
+}

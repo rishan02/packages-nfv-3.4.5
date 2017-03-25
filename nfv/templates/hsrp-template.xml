@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config tags='merge'>
+				<interface xmlns="urn:ios">
+					<GigabitEthernet when="{starts-with(/interface[number($hsrpOuterConter)]/interface-id,'3')}">
+						<name>{/interface[number($hsrpOuterConter)]/interface-id}</name>
+						<standby when="{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/admin-state='enable'	
+							and /interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/ip-address !='' 
+							and /interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/priority !='' 
+							and /interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/group-id !=''}">
+							<version>2</version>
+						
+							<standby-list>
+								<group-number>{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/group-id}</group-number>
+								<ip when="{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/ip-address !=''}">
+									<address>{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/ip-address}</address>
+								</ip>
+								<priority>{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/priority}</priority>
+								<preempt when="{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/preemption/preempt='disable'}" tags='delete'/>
+								<preempt when="{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/preemption/preempt='enable'}">
+									<delay>
+										<minimum>{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/preemption/min-delay-time}</minimum>
+										<reload>{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/preemption/reload-delay-time}</reload>
+										<sync>{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/preemption/sync-delay-time}</sync>
+									</delay>
+								</preempt>
+								<timers>
+									<hold-time>
+										<seconds when="{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/timers/hold-time-sec !=''}">{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/timers/hold-time-sec}</seconds>
+										<msec when="{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/timers/hold-time-msec !=''}">{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/timers/hold-time-msec}</msec>
+									</hold-time>
+									<hello-interval>
+										<seconds when="{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/timers/hello-interval-sec !=''}">{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/timers/hello-interval-sec}</seconds>
+										<msec when="{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/timers/hello-interval-msec !=''}">{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/timers/hello-interval-msec}</msec>
+									</hello-interval>
+								</timers>
+								<track>
+									<name>{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/track[number($trackCounter)]/object-number}</name>
+									<decrement>{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/track[number($trackCounter)]/priority-decrement}</decrement>
+								</track>
+								<authentication when="{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/authentication/authentication-type='none'}" tags='delete'/>
+								<authentication when="{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/authentication/authentication-type='md5'}">
+									<md5>
+										<key-chain>{/interface[number($hsrpOuterConter)]/hsrp/hsrp-group[number($hsrpInnerConter)]/authentication/key-chain-name}</key-chain>
+									</md5>
+								</authentication>
+																
+								
+							</standby-list>
+						</standby>
+					</GigabitEthernet>
+				</interface>
+			</config>
+		</device>
+	</devices>
+</config-template>

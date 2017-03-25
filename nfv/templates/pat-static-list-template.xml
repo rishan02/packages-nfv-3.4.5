@@ -1,0 +1,33 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config>
+				<ip xmlns="urn:ios">
+					<nat>
+						<inside>
+							<source>
+								<list>
+									<id>{/pat-param/pat-list/source-list-name}</id>
+									<overload/>
+									<interface>GigabitEthernet2</interface>
+								</list>
+							</source>
+						</inside>
+					</nat>
+					<access-list>
+						<standard>
+							<std-named-acl>
+								<name>{/pat-param/pat-list/source-list-name}</name>
+								<std-access-list-rule>
+									<rule>{$rule}</rule>
+								</std-access-list-rule>
+
+							</std-named-acl>
+						</standard>
+					</access-list>
+				</ip>
+			</config>
+		</device>
+	</devices>
+</config-template>

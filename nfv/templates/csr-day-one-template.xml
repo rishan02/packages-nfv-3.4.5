@@ -1,0 +1,91 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config>
+				<hostname xmlns="urn:ios">{$hostname}</hostname>
+				<interface xmlns="urn:ios">
+					<GigabitEthernet>
+						<name>2</name>
+						<description>WAN</description>
+						<ip>
+							<address>
+								<primary>
+									<mask>{$mask2}</mask>
+									<address>{$address2}</address>
+								</primary>
+							</address>
+							<nat when="{/nat-feature='enable' and /nat-interface-id='2'}">
+          						<outside/>
+          				    </nat>
+						</ip>
+					</GigabitEthernet>
+				</interface>
+				<interface xmlns="urn:ios">
+					<GigabitEthernet>
+						<name>3</name>
+						<description>LAN</description>
+						<ip>
+							<address>
+								<primary>
+									<mask>{$mask}</mask>
+									<address>{$address}</address>
+								</primary>
+							</address>
+							<nat when="{/nat-feature='enable' and /nat-interface-id='3'}">
+          						<inside/>
+          					</nat>
+						</ip>
+					</GigabitEthernet>
+				</interface>
+				<ip xmlns="urn:ios" when="{/routing-protocol='static'}">
+					<route>
+						<ip-route-forwarding-list>
+							<prefix>0.0.0.0</prefix>
+							<mask>0.0.0.0</mask>
+							<forwarding-address>{/gateway}</forwarding-address>
+							<name>{/ip-prefix-name}</name>
+						</ip-route-forwarding-list>
+					</route>
+				</ip>
+				<router xmlns="urn:ios" when="{/routing-protocol='bgp'}">
+					<bgp>
+						<as-no>{/as-number}</as-no>
+						<bgp>
+       						<log-neighbor-changes>true</log-neighbor-changes>
+     					</bgp>								
+						<neighbor>
+							<id>{/gateway}</id>
+							<remote-as>{/remote-as-number}</remote-as>
+						</neighbor>
+						<neighbor>
+							<id>{/gateway}</id>
+							<password>
+								<text>{/neighbor-passwd}</text>
+							</password>
+						</neighbor>
+						<address-family>
+							<ipv4>
+								<af>unicast</af>
+								<neighbor>
+									<id>{/gateway}</id>
+									<activate/>
+									<prefix-list when="{/bgp-prefix-list-Ingress='enable' and bgp-prefix-list/bgp-direction='Ingress'}">
+										<direction>in</direction>
+										<prefix-list-name>Ingress</prefix-list-name>
+									</prefix-list>
+									<prefix-list when="{/bgp-prefix-list-Egress='enable' and bgp-prefix-list/bgp-direction='Egress'}">
+										<direction>out</direction>
+										<prefix-list-name>Egress</prefix-list-name>
+									</prefix-list>
+								</neighbor>
+							</ipv4>
+						</address-family>
+					</bgp>
+				</router>
+				
+				
+			</config>
+		</device>
+	</devices>
+</config-template>

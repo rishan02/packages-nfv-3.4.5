@@ -1,0 +1,29 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config>
+				<ip xmlns="urn:ios">
+					<prefix-list>
+						<prefixes when="{/prefix-list[number($prefixListCounter)]/admin-state='enable' and string-length(/prefix-list[number($prefixListCounter)]/rule[number($ruleCounter)]/seq-no)&gt;0}">
+							<name>{/prefix-list[number($prefixListCounter)]/name}</name>
+							<seq>
+								<no>{/prefix-list[number($prefixListCounter)]/rule[number($ruleCounter)]/seq-no}</no>
+								<permit when="{/prefix-list[number($prefixListCounter)]/rule[number($ruleCounter)]/action='permit'}">									
+									<ip>{/prefix-list[number($prefixListCounter)]/rule[number($ruleCounter)]/network}</ip>
+									<ge>{/prefix-list[number($prefixListCounter)]/rule[number($ruleCounter)]/ge}</ge>
+									<le>{/prefix-list[number($prefixListCounter)]/rule[number($ruleCounter)]/le}</le>
+								</permit>
+								<deny when="{/prefix-list[number($prefixListCounter)]/rule[number($ruleCounter)]/action='deny'}">								
+									<ip>{/prefix-list[number($prefixListCounter)]/rule[number($ruleCounter)]/network}</ip>
+									<ge>{/prefix-list[number($prefixListCounter)]/rule[number($ruleCounter)]/ge}</ge>
+									<le>{/prefix-list[number($prefixListCounter)]/rule[number($ruleCounter)]/le}</le>
+								</deny>
+							</seq>
+						</prefixes>
+					</prefix-list>
+				</ip>
+			</config>
+		</device>
+	</devices>
+</config-template>

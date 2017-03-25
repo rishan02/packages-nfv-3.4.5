@@ -1,0 +1,10 @@
+<config xmlns="http://tail-f.com/ns/config/1.0">
+	<kickers xmlns="http://tail-f.com/ns/kicker">
+		<data-kicker>
+			<id>{$TENANT}-{$SERVICE_NAME}-CSR1kv-CSR-{$ESC}</id>
+			<monitor>/nfvo/vnf-info/nfvo-rel2-esc:esc/vnf-deployment[tenant='{$TENANT}'][deployment-name='{$DEPLY_NAME}'][esc='{$ESC}']/plan/component[name='self']/state[name='ncs:ready']/status</monitor>
+			<kick-node>/megapop/l2nid-mpls-csr[service-name='{$SERVICE_NAME}']</kick-node>
+			<action-name>reactive-re-deploy</action-name>
+		</data-kicker>
+	</kickers>
+</config>

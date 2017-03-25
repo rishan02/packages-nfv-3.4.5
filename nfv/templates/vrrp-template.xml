@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config tags='merge'>
+				<interface xmlns="urn:ios">
+					<GigabitEthernet when="{starts-with(/interface[number($intfCounter)]/interface-id,'3')}">
+						<name>{/interface[number($intfCounter)]/interface-id}</name>										
+						<vrrp when="{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/admin-state ='enable'
+						and /interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/ip-address !=''						
+						and /interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/group-id !=''}">
+							<id>{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/group-id}</id>
+							<ip>
+								<address>{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/ip-address}</address>
+							</ip>
+							<priority>{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/priority}</priority>
+							<preempt when="{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/preemption/preempt ='enable'}">
+								<delay>
+									<minimum>{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/preemption/min-delay-time}</minimum>
+								</delay>
+							</preempt>	
+							<timers>
+								<learn when="{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/timers/learn ='enable'}" />								
+								<advertise when="{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/timers/learn ='disable'}">									
+									<seconds>{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/timers/hello-interval-sec}</seconds>
+									<msec>{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/timers/hello-interval-msec}</msec>
+								</advertise>
+							</timers>
+						    <authentication when="{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/authentication/authentication-type !='' and /interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/authentication/authentication-type ='cleartext'}">
+								<text>{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/authentication/cleartext-password }</text>
+							</authentication>				
+							<track>
+								<name>{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/track[number($trackCounter)]/object-number}</name>
+								<decrement>{/interface[number($intfCounter)]/vrrp/vrrp-group[number($vrrpCounter)]/track[number($trackCounter)]/priority-decrement}</decrement>
+							</track>
+						</vrrp>
+					</GigabitEthernet>
+				</interface>
+			</config>
+		</device>
+	</devices>
+</config-template>

@@ -1,0 +1,39 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config>
+				<track xmlns="urn:ios">
+					<track-object>
+						<object-number>{/track/track-object[number($trackObjectCounter)]/object-number}</object-number>
+						<delay>
+							<down when="{string-length(/track/track-object[number($trackObjectCounter)]/delay/down-timer)&gt;0}">{/track/track-object[number($trackObjectCounter)]/delay/down-timer}</down>
+							<up when="{string-length(/track/track-object[number($trackObjectCounter)]/delay/up-timer)&gt;0}">{/track/track-object[number($trackObjectCounter)]/delay/up-timer}</up>
+						</delay>
+						<interface when="{/track/track-object[number($trackObjectCounter)]/object-type = 'interface' and starts-with(/track/track-object[number($trackObjectCounter)]/interface/interface-id,'3')}">
+							<GigabitEthernet>{/track/track-object[number($trackObjectCounter)]/interface/interface-id}</GigabitEthernet>
+							<line-protocol when="{/track/track-object[number($trackObjectCounter)]/interface/track-type = 'line-protocol'}" />
+							<ip when="{/track/track-object[number($trackObjectCounter)]/interface/track-type = 'ip-routing'}">
+								<routing/>
+							</ip>
+						</interface>
+						<list when="{/track/track-object[number($trackObjectCounter)]/list/operator = 'and' or /track/track-object[number($trackObjectCounter)]/list/operator = 'or'}">
+							<boolean>{/track/track-object[number($trackObjectCounter)]/list/operator}</boolean>
+						</list>
+						<object>
+							<id>{/track/track-object[number($trackObjectCounter)]/list/object[number($objectCounter)]/object-no}</id>
+							<not when="{/track/track-object[number($trackObjectCounter)]/list/object[number($objectCounter)]/not ='enable'}"/>
+						</object>
+						<ip when="{/track/track-object[number($trackObjectCounter)]/object-type = 'ip-route'}">
+							<route>
+								<reachability/>
+								<mask>{$networkIpMask}</mask>
+								<prefix>{$networkIpAddress}</prefix>
+							</route>
+						</ip>
+					</track-object>
+				</track>
+			</config>
+		</device>
+	</devices>
+</config-template>

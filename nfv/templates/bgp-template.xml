@@ -1,0 +1,164 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config>
+				<router xmlns="urn:ios">
+					<bgp when="{/bgp/admin-state='enable' and string-length(/bgp/as-number)&gt;0}">
+						<as-no>{/bgp/as-number}</as-no>
+						<bgp when="{/bgp/router-id!=''}">
+        				<router-id>{/bgp/router-id}</router-id>
+      					</bgp>
+      					<network>
+							<number>{$BGP_NETWORK_IP}</number>
+							<mask>{$BGP_NETWORK_MASK}</mask>
+						</network>
+						<neighbor>
+							<id>{/bgp/neighbor[number($neighborCounter)]/ip-address}</id>
+							<remote-as>{/bgp/neighbor[number($neighborCounter)]/remote-as-number}</remote-as>
+							<password>
+								<text>{/bgp/neighbor[number($neighborCounter)]/password}</text>
+							</password>	
+							<fall-over-bfd>
+							<fall-over when="{/bgp/neighbor[number($neighborCounter)]/fall-over-bfd='enable'">
+								<bfd/>
+							</fall-over>					
+							</fall-over-bfd>
+						</neighbor>
+						<bgp when="{/bgp/graceful-restart/admin-state='enable'}">
+							<graceful-restart-conf>
+								<graceful-restart>
+									<restart-time
+										when="{string-length($RESTART_TIME)&gt;0 and $RESTART_TIME!='none'}">{$RESTART_TIME}</restart-time>
+									<stalepath-time
+										when="{string-length($STALE_PATH_TIME)&gt;0 and $STALE_PATH_TIME!='none'}">{$STALE_PATH_TIME}</stalepath-time>
+								</graceful-restart>
+							</graceful-restart-conf>
+							<graceful-restart/> 
+						</bgp>
+						
+						<address-family>
+							<ipv4
+								when="{/bgp/address-family[number($addressFamilyCounter)]/af='ipv4'}">
+								<af>unicast</af>
+								<neighbor
+									when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/activate='enable'}">
+									<id>{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/ip-address}</id>
+									<activate/>
+									<default-originate
+										when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/default-information/originate='enable'}" />
+									<next-hop-self
+										when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/next-hop-self='enable'}" />
+									<prefix-list
+										when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/prefix-list[number($prefixCounter)]/direction='ingress'
+										and string-length(/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/prefix-list[number($prefixCounter)]/prefix-list-name)&gt;0}">
+										<direction>in</direction>
+										<prefix-list-name>{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/prefix-list[number($prefixCounter)]/prefix-list-name}</prefix-list-name>
+									</prefix-list>
+									<prefix-list
+										when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/prefix-list[number($prefixCounter)]/direction='egress'
+										and string-length(/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/prefix-list[number($prefixCounter)]/prefix-list-name)&gt;0}">
+										<direction>out</direction>
+										<prefix-list-name>{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/prefix-list[number($prefixCounter)]/prefix-list-name}</prefix-list-name>
+									</prefix-list>
+									<route-map
+										when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/route-map[number($addressRouteCounter)]/direction='ingress'
+										and string-length(/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/route-map[number($addressRouteCounter)]/route-map-name)&gt;0}">
+										<direction>in</direction>
+										<route-map-name>{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/route-map[number($addressRouteCounter)]/route-map-name}</route-map-name>
+									</route-map>
+									<route-map
+										when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/route-map[number($addressRouteCounter)]/direction='egress'
+										and string-length(/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/route-map[number($addressRouteCounter)]/route-map-name)&gt;0}">
+										<direction>out</direction>
+										<route-map-name>{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/route-map[number($addressRouteCounter)]/route-map-name}</route-map-name>
+									</route-map>
+									
+								</neighbor>
+								<synchronization
+									when="{/bgp/address-family[number($addressFamilyCounter)]/synchronization='enable'}" />
+								<redistribute>
+									<eigrp when="{string-length(/bgp/address-family[number($addressFamilyCounter)]/redistribute/eigrp/route-map-name)&gt;0}">
+										<as-no>{/bgp/address-family[number($addressFamilyCounter)]/redistribute/eigrp/as-number}</as-no>
+										<route-map>{/bgp/address-family[number($addressFamilyCounter)]/redistribute/eigrp/route-map-name}</route-map>
+									</eigrp>
+									<connected when="{string-length(/bgp/address-family[number($addressFamilyCounter)]/redistribute/connected/route-map-name)&gt;0}">
+										<route-map>{/bgp/address-family[number($addressFamilyCounter)]/redistribute/connected/route-map-name}</route-map>
+									</connected>
+									<static when="{string-length(/bgp/address-family[number($addressFamilyCounter)]/redistribute/static/route-map-name)&gt;0}">
+										<route-map>{/bgp/address-family[number($addressFamilyCounter)]/redistribute/static/route-map-name}</route-map>
+									</static>
+									<ospf when="{string-length(/bgp/address-family[number($addressFamilyCounter)]/redistribute/ospf/route-map-name)&gt;0}">
+										<id>{/bgp/address-family[number($addressFamilyCounter)]/redistribute/ospf/process-id}</id>
+											<route-map>{/bgp/address-family[number($addressFamilyCounter)]/redistribute/ospf/route-map-name}</route-map>
+									</ospf>
+								</redistribute>
+							</ipv4>
+							<vpnv4 when="{/bgp/address-family[number($addressFamilyCounter)]/af='vpnv4'}">
+								<af>unicast</af>							
+								<neighbor
+									when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/activate='enable'}">
+									<id>{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/ip-address}</id>
+									<activate/>
+									<default-originate
+										when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/default-information/originate='enable'}" />
+									<next-hop-self
+										when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/next-hop-self='enable'}" />
+									<prefix-list
+										when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/prefix-list[number($prefixCounter)]/direction='ingress'
+										and string-length(/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/prefix-list[number($prefixCounter)]/prefix-list-name)&gt;0}">								
+										<direction>in</direction>
+										<prefix-list-name>{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/prefix-list[number($prefixCounter)]/prefix-list-name}</prefix-list-name>
+									</prefix-list>
+									<prefix-list
+										when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/prefix-list[number($prefixCounter)]/direction='egress'
+										and string-length(/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/prefix-list[number($prefixCounter)]/prefix-list-name)&gt;0}">							
+										<direction>out</direction>
+										<prefix-list-name>{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/prefix-list[number($prefixCounter)]/prefix-list-name}</prefix-list-name>
+									</prefix-list>
+									<route-map
+										when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/route-map[number($addressRouteCounter)]/direction='ingress'
+										and string-length(/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/route-map[number($addressRouteCounter)]/route-map-name)&gt;0}">
+										<direction>in</direction>
+										<route-map-name>{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/route-map[number($addressRouteCounter)]/route-map-name}</route-map-name>
+									</route-map>
+									<route-map
+										when="{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/route-map[number($addressRouteCounter)]/direction='egress'
+										and string-length(/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/route-map[number($addressRouteCounter)]/route-map-name)&gt;0}">							
+										<direction>out</direction>
+										<route-map-name>{/bgp/address-family[number($addressFamilyCounter)]/neighbor[number($addressNbCounter)]/route-map[number($addressRouteCounter)]/route-map-name}</route-map-name>
+									</route-map>
+								</neighbor>
+								<synchronization
+									when="{/bgp/address-family[number($addressFamilyCounter)]/synchronization='enable'}" />
+								<redistribute>
+									<eigrp when="{string-length(/bgp/address-family[number($addressFamilyCounter)]/redistribute/eigrp/route-map-name)&gt;0}">
+										<as-no>{/bgp/address-family[number($addressFamilyCounter)]/redistribute/eigrp/as-number}</as-no>
+										<route-map>{/bgp/address-family[number($addressFamilyCounter)]/redistribute/eigrp/route-map-name}</route-map>
+									</eigrp>
+									<connected when="{string-length(/bgp/address-family[number($addressFamilyCounter)]/redistribute/connected/route-map-name)&gt;0}">
+										<route-map>{/bgp/address-family[number($addressFamilyCounter)]/redistribute/connected/route-map-name}</route-map>
+									</connected>
+									<static when="{string-length(/bgp/address-family[number($addressFamilyCounter)]/redistribute/static/route-map-name)&gt;0}">
+										<route-map>{/bgp/address-family[number($addressFamilyCounter)]/redistribute/static/route-map-name}</route-map>
+									</static>
+									<ospf when="{string-length(/bgp/address-family[number($addressFamilyCounter)]/redistribute/ospf/route-map-name)&gt;0}">
+										<id>{/bgp/address-family[number($addressFamilyCounter)]/redistribute/ospf/process-id}</id>
+											<route-map>{/bgp/address-family[number($addressFamilyCounter)]/redistribute/ospf/route-map-name}</route-map>
+									</ospf>
+								</redistribute>
+							</vpnv4>
+						</address-family>
+
+						<bgp>
+							<default>
+								<ipv4-unicast>false</ipv4-unicast>
+							</default>
+						</bgp>
+					</bgp>
+				</router>
+
+			</config>
+		</device>
+	</devices>
+</config-template>

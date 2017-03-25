@@ -1,0 +1,39 @@
+<ncs-package xmlns="http://tail-f.com/ns/ncs-packages">
+  <name>nfv</name>
+  <package-version>3.4.5</package-version>
+  <description>SingTel NFV services</description>
+  <ncs-min-version>3.0</ncs-min-version>
+
+  <required-package>
+    <name>tailf-etsi-rel2-nfvo-esc</name>
+  </required-package>
+  
+   <required-package>
+    <name>dd-resource-manager-shared</name>
+  </required-package>
+  
+   <required-package>
+    <name>nfv-rpc</name>
+  </required-package>
+
+  <component>
+    <name>SingTelNfvRFS</name>
+    <callback>
+      <java-class-name>com.singtel.nfv.nfvRFS</java-class-name>
+    </callback>
+  </component>
+  
+  <component>
+    <name>ActionsCommands</name>
+    <callback>
+      <java-class-name>com.singtel.nfv.ActionCommands</java-class-name>
+    </callback>
+  </component>
+    <component>
+    <name>NotifCdbSubscriber</name>
+    <application>
+      <java-class-name>com.singtel.nfv.notifCdbSubscriber</java-class-name>
+    </application>
+  </component>
+
+</ncs-package>

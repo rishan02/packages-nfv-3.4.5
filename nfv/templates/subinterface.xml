@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config tags='merge'>
+				<interface xmlns="urn:ios">
+					<GigabitEthernet when="$lansubinterface !='null' and starts-with($lansubinterface,'3.')">
+      					<name>{$lansubinterface}</name>
+						<description>LAN Subinterface</description>
+      					<encapsulation>
+        					<dot1Q>
+          						<vlan-id>{substring($lansubinterface,3)}</vlan-id>
+        					</dot1Q>
+      					</encapsulation>
+	  					<ip>
+        					<address>
+          						<primary>
+          							<mask>{$lancvanMask}</mask>
+            						<address>{$lancvanIp}</address>
+          						</primary>
+        					</address>
+							<nat when="{/nat-feature='enable' and /nat-interface-id = $lansubinterface}">
+          						<inside/>
+          					</nat>
+      					</ip>
+    					</GigabitEthernet>
+    					<GigabitEthernet when="$wansubinterface !='null' starts-with($wansubinterface,'2.')">
+      					<name>{$wansubinterface}</name>
+						<description>WAN Subinterface</description>
+      					<encapsulation>
+        					<dot1Q>
+          						<vlan-id>{substring($wansubinterface,3)}</vlan-id>
+        					</dot1Q>
+      					</encapsulation>
+	  					<ip>
+        					<address>
+          						<primary>
+          							<mask>{$wancvanMask}</mask>
+            						<address>{$wancvanIp}</address>
+          						</primary>
+        					</address>
+							<nat when="{/nat-feature='enable' and /nat-interface-id = $wansubinterface}">
+          						<outside/>
+          					</nat>
+      					</ip>
+    					</GigabitEthernet>
+  				</interface>				
+			</config>
+		</device>
+	</devices>
+</config-template>					

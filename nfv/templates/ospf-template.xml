@@ -1,0 +1,57 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config>
+				<router xmlns="urn:ios">
+					<ospf
+						when="{/ospf[number($ospfCounter)]/admin-state='enable' and /ospf[number($ospfCounter)]/process-id !='' and string-length($ospfNetIpAddress)&gt;0 and $ospfAreaId !=''}">
+						<id>{/ospf[number($ospfCounter)]/process-id}</id>
+						<router-id
+							when="{router-id !=''}">{router-id}</router-id>
+						<log-adjacency-changes when="{log-adjacency-changes='enable'}">
+							<detail />
+						</log-adjacency-changes>						
+						<default-information when="{default-information/originate='enable'}">
+							<originate>
+								<always when="{default-information/always='enable'}" />
+							</originate>
+						</default-information>
+						<network
+							when="{string-length($ospfNetIpAddress)&gt;0 and string-length($ospfNetIpMask)&gt;0 and $ospfAreaId !=''}">
+							<ip>{$ospfNetIpAddress}</ip>
+							<mask>{$ospfNetIpMask}</mask>
+							<area>{$ospfAreaId}</area>
+						</network>
+						<passive-interface>
+						        <default/>
+						      </passive-interface>
+						<disable>
+							<passive-interface>
+								<interface>GigabitEthernet{interface/interface-id}</interface>
+							</passive-interface>							
+						</disable>
+						<redistribute>
+							<bgp when="{redistribute/bgp/route-map-name !=''}">
+								<route-map>{redistribute/bgp/route-map-name}</route-map>
+								<as-no when="{redistribute/bgp/as-number !=''}">{redistribute/bgp/as-number}</as-no>
+								<subnets when="{redistribute/bgp/subnets='enable'}" />
+								<!--subnets when="{redistribute/bgp/subnets='disable'}" tags='delete' / -->
+							</bgp>
+							<connected when="{redistribute/connected/route-map-name !=''}">
+								<route-map>{redistribute/connected/route-map-name}</route-map>
+								<subnets when="{redistribute/connected/subnets='enable'}" />
+								<!-- subnets when="{/ospf[number($ospfCounter)]/redistribute/connected/subnets='disable'}" tags='delete' / -->
+							</connected>
+							<static when="{redistribute/static/route-map-name !=''}">
+								<route-map>{redistribute/static/route-map-name}</route-map>
+								<subnets when="{redistribute/static/subnets='enable'}" />
+								<!--subnets when="{/ospf[number($ospfCounter)]/redistribute/static/subnets='disable'}" tags='delete' / -->
+							</static>
+						</redistribute>
+					</ospf>
+				</router>
+			</config>
+		</device>
+	</devices>
+</config-template>

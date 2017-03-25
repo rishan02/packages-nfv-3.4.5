@@ -1,0 +1,67 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+	<devices xmlns="http://tail-f.com/ns/ncs">
+		<device>
+			<name>{$device}</name>
+			<config>
+				<ip xmlns="urn:ios" when="{nat-param/nat-list/nat-direction='inside'}">
+					<nat>
+						<inside>
+							<source>
+								<static>
+									<nat-static-transport-list when="{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/nat-protocol!='none'}">
+										<proto>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/nat-protocol}</proto>
+										<local-ip>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/local-ip}</local-ip>
+										<local-port>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/local-port}</local-port>
+										<global-ip>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/global-ip}</global-ip>
+										<global-port>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/global-port}</global-port>
+										<no-payload when="{no-payload='true'}" />
+									</nat-static-transport-list>
+									<nat-static-address-list when="{not(contains(nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/nat-protocol,'tcp')) and not(contains(nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/nat-protocol,'udp'))}">
+										<local-ip>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/local-ip}</local-ip>
+										<global-ip>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/global-ip}</global-ip>
+										<no-payload when="{no-payload='true'}" />
+									</nat-static-address-list>
+
+									<nat-static-address-list when="{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/static-nat-type='network'}">
+										<local-ip>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/local-network}</local-ip>
+										<global-ip>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='inside']/global-network}</global-ip>
+										<no-payload when="{no-payload='true'}" />
+									</nat-static-address-list>
+								</static>
+							</source>
+						</inside>
+					</nat>
+				</ip>
+				<ip xmlns="urn:ios" when="{nat-param/nat-list/nat-direction='outside'}">
+					<nat>
+						<outside>
+							<source>
+								<static>
+									<nat-static-transport-list when="{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/nat-protocol!='none'}">
+										<proto>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/nat-protocol}</proto>
+										<global-ip>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/global-ip}</global-ip>
+										<global-port>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/global-port}</global-port>
+										<local-ip>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/local-ip}</local-ip>
+										<local-port>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/local-port}</local-port>
+										<no-payload when="{no-payload='true'}" />
+									</nat-static-transport-list>
+								<nat-static-address-list when="{not(contains(nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/nat-protocol,'tcp')) and not(contains(nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/nat-protocol,'udp'))}">
+										<global-ip>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/global-ip}</global-ip>
+										<local-ip>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/local-ip}</local-ip>
+										<no-payload when="{no-payload='true'}" />
+									</nat-static-address-list>
+									<nat-static-address-list when="{/nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/static-nat-type='network'}">
+										<global-ip>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/global-network}</global-ip>
+										<local-ip>{nat-param/nat-list[nat-seq-no=$NATSEQNO][nat-direction='outside']/local-network}</local-ip>
+										<no-payload when="{no-payload='true'}" />
+									</nat-static-address-list>
+								</static>
+							</source>
+						</outside>
+					</nat>
+				</ip>
+				
+			</config>
+		</device>
+	</devices>
+</config-template>
