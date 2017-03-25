@@ -1,0 +1,778 @@
+submodule tailf-etsi-rel2-nfvo-vnf {
+  belongs-to tailf-etsi-rel2-nfvo {
+    prefix nfvo-rel2;
+  }
+
+  import tailf-common {
+    prefix tailf;
+  }
+  import ietf-inet-types {
+    prefix inet;
+  }
+  include tailf-etsi-rel2-nfvo-common {
+    revision-date 2017-01-20;
+  }
+
+  description
+    "Models for VNFD according to GS NFV-IFA 011.";
+
+  revision 2017-01-20 {
+    description
+      "Initial revision
+       Common data structure to support VNFD
+       according to:
+       ETSI GS NFV-IFA 011 V2.1.1 (2016-10)";
+
+    reference "ETSI GS NFV-IFA 011 V2.1.1 (2016-10)";
+  }
+
+  grouping cpd-information-element {
+    reference "7.1.6.2 Cpd Information Element";
+    leaf id {
+      type string;
+    }
+    leaf layer-protocol {
+      mandatory true;
+      type identityref {
+        base layer-protocol;
+      }
+    }
+    leaf role {
+      type cp-role;
+    }
+    leaf description {
+      tailf:info "Human readable description of the connection point";
+      type string;
+    }
+    list address-data {
+      key "address-type";
+      leaf address-type {
+        type enumeration {
+          enum mac-address;
+          enum ip-address;
+        }
+      }
+      container l2-address-data {
+        when "../nfvo-rel2:address-type='mac-address'";
+      }
+      container l3-address-data {
+        when "../nfvo-rel2:address-type='ip-address'";
+        leaf ip-address-assignment {
+          description
+            "Specify if the address assignment is the
+             responsibility of management and
+             orchestration function or not.";
+          type empty;
+        }
+        leaf floating-ip-activated {
+          description
+            "Specify if the floating IP scheme is
+             activated on the CP or not.";
+          type empty;
+        }
+        leaf ip-address-type {
+          type enumeration {
+            enum "IPv4";
+            enum "IPv6";
+          }
+        }
+        leaf number-of-ip-addresses {
+          type uint32;
+        }
+      }
+    }
+  }
+
+  grouping virtual-network-interface-requirement-list {
+    list virtual-network-interface-requirement {
+      key "name";
+      leaf name {
+        description
+          "Provides a human readable name for the
+           requirement.";
+        type string;
+      }
+      leaf description {
+        type string;
+      }
+      leaf support-mandatory {
+        description
+          "Indicates whether fulfilling the constraint is
+          mandatory for successful operation or desirable.";
+        type empty;
+      }
+      leaf requirement {
+        mandatory true;
+        type enumeration {
+          enum "SR-IOV";
+          enum "DPDK";
+        }
+      }
+    }
+  }
+
+  grouping vnfd {
+    list vnfd {
+      key "id";
+      description
+        "A VNF Descriptor (VNFD) is a deployment template which describes a VNF
+         in terms of deployment and operational behaviour requirements.
+         It also contains connectivity, interface and virtualised resource
+         requirements";
+      reference "GS NFV IFA011: VNFD information element";
+      leaf id {
+        tailf:info "Unique ID of the VNFD";
+        type string;
+      }
+      leaf provider {
+        // should be mandatory
+        tailf:info "Provider of the VNF and of the VNFD";
+        type string;
+      }
+      leaf product-name {
+        // should be mandatory
+        tailf:info "Human readable name for the VNF Product.";
+        type string;
+      }
+      leaf software-version {
+        // should be mandatory
+        tailf:info "Software version of the VNF.";
+        type string;
+      }
+      leaf version {
+        // should be mandatory
+        tailf:info "Identifies the version of the VNFD";
+        type string;
+      }
+      leaf product-info-name {
+        tailf:info "Human readable name of the VNFD";
+        type string;
+      }
+      leaf product-info-description {
+        tailf:info "Human readable description of the VNFD";
+        type string;
+      }
+      leaf-list vnfm-info {
+        // Should be min-elements 1 according to specification.
+        type string;
+      }
+      leaf localization-language {
+        description "Information about the language of the VNF.";
+        type string;
+      }
+      leaf default-localization-language {
+        type string;
+      }
+      list vdu {
+        key "id";
+        min-elements 1;
+        description
+          "The Virtualisation Deployment Unit (VDU) is a construct supporting
+           the description of the deployment and operational behaviour of a
+           VNF component, or the entire VNF if it was not componentized in
+           components";
+        reference "GS NFV IFA011: VDU information element";
+        leaf id {
+          tailf:info "Unique ID of the VDU";
+          type string;
+        }
+        leaf name {
+          description "Human readable name of the VDU";
+          type string;
+        }
+        leaf description {
+          tailf:info "Human readable description of the VDU";
+          type string;
+        }
+        list internal-connection-point-descriptor {
+          key "id";
+          min-elements 1;
+          description
+            "A internal-connection-point element is a type of connection point and describes
+             network connectivity between a VDU instance and an internal Virtual Link or an
+             external connection point.";
+          reference "GS NFV IFA011: VduCpd information element";
+          choice cp-connection {
+            mandatory true;
+            description
+              "A connection point must either connect to an internal virtual
+               link or to an external connection points.";
+            leaf virtual-link-descriptor {
+              tailf:info "Connect to an internal VLD";
+              type leafref {
+                path "../../../nfvo-rel2:virtual-link-descriptor/nfvo-rel2:id";
+              }
+            }
+            leaf external-connection-point-descriptor {
+              tailf:info "Connect to an external connection point";
+              type leafref {
+                path "../../../nfvo-rel2:external-connection-point-descriptor/nfvo-rel2:id";
+              }
+            }
+          }
+          leaf bitrate-requirement {
+            type uint64;
+            units "Mbps";
+          }
+          uses virtual-network-interface-requirement-list;
+          uses cpd-information-element;
+        }
+        leaf virtual-compute-descriptor {
+          type leafref {
+            path "../../nfvo-rel2:virtual-compute-descriptor/nfvo-rel2:id";
+          }
+        }
+        leaf-list virtual-storage-descriptor {
+          type leafref {
+            path "../../nfvo-rel2:virtual-storage-descriptor/nfvo-rel2:id";
+          }
+        }
+        list boot-order {
+          ordered-by user;
+          key "virtual-storage-descriptor";
+          leaf virtual-storage-descriptor {
+            type leafref {
+              path "../../nfvo-rel2:virtual-compute-descriptor";
+            }
+          }
+        }
+        container software-image-descriptor {
+          presence "Can be used to specify image data if the VNF should be onboarded to the VIM by the NFVO";
+          description
+            "VM image data for the image used to boot the VDU.";
+          reference "GS NFV IFA011: SwImageDescriptor information element";
+          leaf name {
+            type string;
+          }
+          leaf version {
+            type string;
+          }
+          leaf checksum {
+            type string;
+          }
+          leaf container-format {
+            mandatory true;
+            type enumeration {
+              enum "bare";
+              enum "ovf";
+            }
+            description
+              "VIM specific information for the container format";
+          }
+          leaf disk-format {
+            mandatory true;
+            type enumeration {
+              enum "qcow2";
+              enum "raw";
+              enum "vmdk";
+            }
+            description
+              "VIM specific information for format of the image";
+          }
+          leaf min-disk {
+            type uint64;
+            units "Gb";
+          }
+          leaf min-ram {
+            type decimal64 {
+              fraction-digits 1;
+              range "0..max";
+            }
+            units "Gb";
+          }
+          leaf size {
+            type uint64;
+          }
+          leaf image {
+            mandatory true;
+            type inet:uri;
+            description
+              "URI to the image";
+          }
+          leaf operating-system {
+            type string;
+          }
+          leaf-list supported-virtualization-environment {
+            type string;
+          }
+        }
+        leaf-list nfvi-constraint {
+          type string;
+        }
+        list monitoring-parameter {
+          key "id";
+          leaf id {
+            type string;
+          }
+          uses monitoring-parameter;
+        }
+        container configurable-properties {
+        }
+      }
+      list virtual-compute-descriptor {
+        key "id";
+        description
+          "Specifies the sizing of the virtual machine.";
+        leaf id {
+          type string;
+        }
+
+        list request-additional-capability {
+          key "name";
+          leaf name {
+            description
+              "Identifies a requested additional capability
+               for the VDU. ETSI GS NFV-IFA 002 [i.1]
+               describes acceleration capabilities.";
+            type string;
+          }
+          leaf support-mandatory {
+            type empty;
+          }
+
+          leaf min-version {
+            type string;
+          }
+
+          leaf preferred-version {
+            type string;
+          }
+          list target-performance-parameters {
+            key "key";
+            leaf key {
+              type string;
+            }
+            leaf value {
+              type string;
+            }
+          }
+        }
+
+        container virtual-memory {
+          leaf virtual-memory-size {
+            tailf:info "Size in Gb";
+            type decimal64 {
+              fraction-digits 1;
+              range "0..max";
+            }
+            units "GB";
+            mandatory true;
+          }
+          leaf virtual-memory-subscription-policy {
+            type string;
+          }
+          leaf numa-enabled {
+            type empty;
+          }
+        }
+        container virtual-cpu {
+          leaf cpu-architecture {
+            type string;
+          }
+          leaf number-of-virtual-cpus {
+            type uint16 {
+              range "1..max";
+            }
+            mandatory true;
+          }
+          leaf virtual-cpu-clock {
+            type uint32;
+            units "MHz";
+          }
+          leaf virtual-cpu-oversubscription-policy {
+            type string;
+          }
+          container virtual-cpu-pinning {
+            presence "Set to specify CPU pinning.";
+            leaf cpu-pinning-policy {
+              mandatory true;
+              type enumeration {
+                enum "static";
+                enum "dynamic";
+              }
+            }
+            container cpu-pinning-map {
+              when "../nfvo-rel2:cpu-pinning-policy='static'";
+            }
+          }
+        }
+      }
+      list virtual-storage-descriptor {
+        key "id";
+        description
+          "Storage requirements for a Virtual Storage instance
+           attached to the VNFC created from this VDU";
+        leaf id {
+          type string;
+        }
+
+        leaf type-of-storage {
+          // Needed to be able to onboard images
+          type enumeration {
+            enum "root";
+            enum "swap";
+            enum "ephemeral";
+          }
+          mandatory true;
+        }
+        leaf size-of-storage {
+          tailf:info "Size in Gib";
+          type uint64;
+          units "GiB";
+          mandatory true;
+        }
+        leaf rdma-enabled {
+          type empty;
+        }
+        /*
+          swImageDesc
+          The specification prescribes a reference to a VDU's software image
+          the VDU already has information of which image it uses, so this would
+          unnecessarily complicate things.
+        */
+      }
+      list virtual-link-descriptor {
+        key "id";
+        description
+          "Represents the type of network connectivity mandated by the VNF
+           vendor between two or more Connection";
+        reference "GS NFV IFA011: Information elements related to the Vld";
+        leaf id {
+          type string;
+        }
+
+        list descriptor-flavor {
+          key "id";
+          leaf id {
+            type string;
+          }
+          uses link-bitrate-requirements;
+          container qos {
+            leaf latency {
+              mandatory true;
+              description
+                "Specifies the maximum latency in ms.";
+              type uint32;
+              units "ms";
+            }
+
+            leaf packet-delay-variation {
+              mandatory true;
+              description
+                "Specifies the maximum jitter in ms.";
+              type uint32;
+              units "ms";
+            }
+
+            leaf packet-loss-ratio {
+              description
+                "Specifies the maximum packet loss ratio.";
+              type decimal64 {
+                fraction-digits "2";
+                range "0..1.00";
+              }
+            }
+          }
+        }
+        uses connectivity-type;
+        leaf-list test-access {
+          type string;
+        }
+        leaf description {
+          tailf:info "Human readable description of the VLD";
+          type string;
+        }
+        list monitoring-parameter {
+          key "id";
+          leaf id {
+            type string;
+          }
+          uses monitoring-parameter;
+        }
+      }
+      list external-connection-point-descriptor {
+        key "id";
+        min-elements 1;
+        description
+          "Describes an external interface exposed by this VNF enabling
+           connection with a Virual Link";
+        leaf virtual-link-descriptor {
+          tailf:info "Optional connection to an internal VLD";
+          type leafref {
+            path "../../nfvo-rel2:virtual-link-descriptor/nfvo-rel2:id";
+          }
+        }
+        /*
+          intCpd
+          we reference from the VDU's CP to the ext-CP instead of the
+          ext-CP to the VDU's CP.
+        */
+        uses virtual-network-interface-requirement-list;
+        uses cpd-information-element;
+      }
+      list deployment-flavor {
+        must "nfvo-rel2:default-instantiation-level or count(nfvo-rel2:instantiation-level) = 1";
+        key "id";
+        min-elements 1;
+        description
+          "Describes a specific deployment version of a VNF with specific
+           requirements for capacity and performance.";
+        reference "GS NFV IFA011: Information elements related to the DeploymentFlavour";
+        leaf id {
+          type string;
+        }
+        leaf description {
+          tailf:info "Human readable description of the deployment flavor";
+          type string;
+        }
+        list vdu-profile {
+          key "vdu";
+          min-elements 1;
+          description
+            "The Vduprofile describes additional instantiation data for
+             a given VDU used in a deployment flavour.";
+          reference "GS NFV IFA011: VduProfile information element";
+          leaf vdu {
+            type leafref {
+              path "../../../nfvo-rel2:vdu/nfvo-rel2:id";
+            }
+          }
+          leaf min-number-of-instances {
+            type uint16;
+            mandatory true;
+          }
+          leaf max-number-of-instances {
+            type uint16;
+            mandatory true;
+            must ". >= ../nfvo-rel2:min-number-of-instances";
+          }
+          uses local-affinity-or-anti-affinity-rule-list;
+          list affinity-or-anti-affinity-group {
+            key "id";
+
+            leaf id {
+              type leafref {
+                path "../../../nfvo-rel2:affinity-or-anti-affinity-group/nfvo-rel2:id";
+              }
+            }
+          }
+        }
+        list virtual-link-profile {
+          key "virtual-link-descriptor flavor";
+          leaf virtual-link-descriptor {
+            type leafref {
+              path "../../../nfvo-rel2:virtual-link-descriptor/nfvo-rel2:id";
+            }
+          }
+          leaf flavor {
+            type leafref {
+              path "deref(../nfvo-rel2:virtual-link-descriptor)/../nfvo-rel2:descriptor-flavor/nfvo-rel2:id";
+            }
+          }
+          uses local-affinity-or-anti-affinity-rule-list;
+          list affinity-or-anti-affinity-group {
+            key "id";
+
+            leaf id {
+              type leafref {
+                path "../../../nfvo-rel2:affinity-or-anti-affinity-group/nfvo-rel2:id";
+              }
+            }
+          }
+        }
+        list instantiation-level {
+          key "id";
+          min-elements 1;
+          description
+            "The InstantiationLevel information element describes a
+             given level of resources to be instantiated within a
+             deployment flavour in term of the number of VNFC instances
+             to be created from each VDU.
+             All the VDUs referenced in the level shall be part of the
+             corresponding deployment flavour and their number shall
+             be within the range (min/max) for this deployment flavour.";
+          reference "GS NFV IFA011: InstantiationLevel information element";
+          leaf id {
+            type string;
+          }
+          leaf description {
+            tailf:info "Human readable description of the instantiation level";
+            type string;
+          }
+          list vdu-level {
+            key "vdu";
+            min-elements 1;
+            description
+              "Sets the number of instances for the VDU in this
+               instantiation level.";
+            leaf vdu {
+              type leafref {
+                path "../../../../nfvo-rel2:vdu/nfvo-rel2:id";
+              }
+            }
+            leaf number-of-instances {
+              type uint16;
+              must ". <= ../../../nfvo-rel2:vdu-profile[vdu=current()/../nfvo-rel2:vdu]/nfvo-rel2:max-number-of-instances";
+              must ". >= ../../../nfvo-rel2:vdu-profile[vdu=current()/../nfvo-rel2:vdu]/nfvo-rel2:min-number-of-instances";
+              mandatory true;
+            }
+          }
+          list scaling-info {
+            key "aspect";
+            leaf aspect {
+              type leafref {
+                path "../../../nfvo-rel2:scaling-aspect/nfvo-rel2:id";
+              }
+            }
+            leaf scale-level {
+              type uint32;
+            }
+          }
+        }
+        leaf default-instantiation-level {
+          type leafref {
+            path "../nfvo-rel2:instantiation-level/nfvo-rel2:id";
+          }
+        }
+        leaf-list supported-operation {
+          type string;
+        }
+        container lcm-operations-configuration {
+          leaf instantiate-vnf-op-config {
+            type string;
+          }
+          leaf scale-vnf-op-config {
+            type string;
+          }
+          leaf scale-vnf-to-level-op-config {
+            type string;
+          }
+          leaf heal-vnf-op-config {
+            type string;
+          }
+          leaf terminate-vnf-op-config {
+            type string;
+          }
+          leaf operate-vnf-op-config {
+            type string;
+          }
+        }
+        list affinity-or-anti-affinity-group {
+          key "id";
+
+          leaf id {
+            type string;
+          }
+
+          leaf affinity-type {
+            mandatory true;
+            type affinity-type;
+          }
+
+          leaf affinity-scope {
+            mandatory true;
+            type affinity-scope;
+          }
+        }
+        list monitoring-parameter {
+          key "id";
+          leaf id {
+            type string;
+          }
+          uses monitoring-parameter;
+        }
+        list scaling-aspect {
+          key "id";
+          leaf id {
+            type string;
+          }
+          leaf name {
+            type string;
+          }
+          leaf description {
+            type string;
+          }
+          leaf associated-group {
+            type leafref {
+              path "../../../nfvo-rel2:element-group/nfvo-rel2:id";
+            }
+          }
+          leaf max-scale-level {
+            type uint32 {
+              range "1..max";
+            }
+          }
+        }
+      }
+      container configurable-properties {
+        leaf auto-scalable {
+          type empty;
+        }
+        leaf auto-healable {
+          type empty;
+        }
+        leaf-list additional-configurable-property {
+          type string;
+        }
+      }
+      container modifiable-attributes {
+        leaf-list extension {
+          type string;
+        }
+        leaf-list metadata {
+          type string;
+        }
+      }
+      list lifecycle-management-script {
+        key "event";
+        leaf event {
+          type string;
+        }
+        leaf script {
+          type string;
+        }
+      }
+      list element-group {
+        key "id";
+        leaf id {
+          type string;
+        }
+        leaf description {
+          type string;
+        }
+        leaf-list vdu {
+          type leafref {
+            path "../../nfvo-rel2:vdu/nfvo-rel2:id";
+          }
+        }
+        leaf-list virtual-link-descriptor {
+          type leafref {
+            path "../../nfvo-rel2:virtual-link-descriptor/nfvo-rel2:id";
+          }
+        }
+      }
+      list indicator {
+        key "id";
+        leaf id {
+          type string;
+        }
+        leaf name {
+          type string;
+        }
+        leaf-list indicator-value {
+          type string;
+        }
+        leaf source {
+          type enumeration {
+            enum "VNF";
+            enum "EM";
+            enum "both";
+          }
+        }
+      }
+      leaf-list auto-scale {
+        type string;
+      }
+    }
+  }
+}

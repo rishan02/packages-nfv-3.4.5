@@ -1,0 +1,28 @@
+module utm-alarms {
+  namespace "http://com.cisco/singtel/utm/alarms";
+  prefix utma;
+
+  import tailf-ncs-alarms {
+    prefix al;
+  }
+
+  identity utm-alarm {
+    base al:alarm-type;
+    description
+      "Base type for all utm-service alarms";
+  }
+
+  identity out-of-service {
+    base utm-alarm;
+    description
+      "The vUTM is out of service and is being healed.
+       Severity:
+         severity=MAJOR => Auto healing started.
+         severity=CLEARED => Auto healing finished.
+         severity=CRITICAL => Auto healing failed, manual recovery needed.
+
+       ManagedDevice=esc
+
+       ManagedObject=/ncs:devices/ncs:device[name='vUTM']";
+  }
+}

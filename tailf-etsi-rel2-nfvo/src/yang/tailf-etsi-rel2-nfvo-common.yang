@@ -1,0 +1,127 @@
+submodule tailf-etsi-rel2-nfvo-common {
+  belongs-to tailf-etsi-rel2-nfvo {
+    prefix nfvo-rel2;
+  }
+
+  description
+    "Common types.";
+
+  revision 2017-01-20 {
+    description
+      "Initial revision
+
+       Common data structures to support VNFD and NSD
+       according to:
+       ETSI GS NFV-IFA 014 V2.1.1 (2016-10)
+       ETSI GS NFV-IFA 011 V2.1.1 (2016-10)";
+  }
+
+  identity layer-protocol {
+  }
+  identity Ethernet {
+    base layer-protocol;
+  }
+  identity MPLS {
+    base layer-protocol;
+  }
+  identity ODU2 {
+    base layer-protocol;
+  }
+  identity IPv4 {
+    base layer-protocol;
+  }
+  identity IPv6 {
+    base layer-protocol;
+  }
+
+  typedef flow-pattern {
+    type enumeration {
+      enum line;
+      enum tree;
+      enum mesh;
+    }
+  }
+
+  typedef cp-role {
+    type enumeration {
+      enum "root";
+      enum "leaf";
+    }
+  }
+
+  typedef affinity-type {
+    type enumeration {
+      enum "affinity";
+      enum "anti-affinity";
+    }
+  }
+
+  typedef affinity-scope {
+    type enumeration {
+      enum "nfvi-node";
+      enum "zone-group";
+      enum "zone";
+      enum "nfvi-pop";
+    }
+  }
+
+  grouping local-affinity-or-anti-affinity-rule-list {
+    list local-affinity-or-anti-affinity-rule {
+      key "affinity-type affinity-scope";
+      leaf affinity-type {
+        type affinity-type;
+      }
+
+      leaf affinity-scope {
+        type affinity-scope;
+      }
+    }
+  }
+
+  grouping connectivity-type {
+    container connectivity-type {
+      leaf layer-protocol {
+        mandatory true;
+        type identityref {
+          base layer-protocol;
+        }
+      }
+
+      leaf flow-pattern {
+        type flow-pattern;
+      }
+    }
+  }
+
+  grouping link-bitrate-requirements {
+    leaf root {
+      mandatory true;
+      description
+        "Specifies the throughput requirement of
+         the link (e.g. bitrate of E-Line, root bitrate
+         of E-Tree, aggregate capacity of E-LAN).";
+      type uint64;
+      units "Mbps";
+    }
+
+    leaf leaf {
+      description
+        "Specifies the throughput requirement of
+        leaf connections to the link when
+        applicable to the connectivity type (e.g. for
+        E-Tree and E-LAN branches).";
+      type uint64;
+      units "Mbps";
+    }
+  }
+
+  grouping monitoring-parameter {
+    leaf name {
+      type string;
+    }
+    leaf performance-metric {
+      type string;
+    }
+  }
+
+}

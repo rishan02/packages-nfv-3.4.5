@@ -1,0 +1,209 @@
+submodule utm-model-vpn {
+  belongs-to utm {
+    prefix utm;
+  }
+  include utm-model;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  import tailf-common {
+    prefix tailf;
+  }
+
+  import utm-types {
+    prefix ut;
+  }
+  reference "[2] SingTel NFV PoC Configuration For NAT Mode FortiGate VDOMs, v1.3";
+
+  revision "2017-02-28" {
+    description "Added access-service-type.";
+  }
+
+  revision "2017-02-16" {
+    description "Corrected WAN/LAN IP address input.";
+  }
+  revision "2017-02-15" {
+      description "/utm/svsc/vpn/site-code is now config false.";
+  }
+  revision "2017-02-14" {
+    description "Made profile to leafref and mandatory";
+  }
+  revision "2017-02-10" {
+    description "Updated according to latest meeting with Singtel.";
+  }
+  revision "2017-02-08" {
+    description "Added new attributes.";
+  }
+  revision "2017-01-26" {
+    description "Changed ip-address1 and ip-address2 to ingress-ip-address
+                 and egress-ip-address.";
+  }
+  revision "2017-01-10" {
+    description "Updated with recent input from Thiyagu:
+                 * main-circuit-id
+                 * business-accaount-number => billing-account-number.";
+  }
+  revision "2017-01-05" {
+    description "Renamed megapop => vpn.";
+  }
+  revision "2016-12-20" {
+    description "Removed deref().";
+  }
+  revision "2016-12-15" {
+    description "Introduced POD level.";
+  }
+
+  identity vpn {
+    base utm-identity;
+  }
+
+  augment "/utm/profiles" {
+    container vpn {
+      list profile {
+        key id;
+        leaf id {
+          type string;
+        }
+        leaf template-name {
+          mandatory true;
+          type string;
+        }
+      }
+    }
+  }
+
+  augment "/utm/svcs" {
+    list vpn {
+      //%service%svcs-vpn;
+      key nfv-vas-reference;
+
+      leaf nfv-vas-reference {
+        type ut:nfv-vas-ref-t;
+      }
+      leaf main-circuit-id {
+        description "This is the id of the end-to-end service to which
+                     this service belongs.";
+        mandatory true;
+        type string;
+      }
+      leaf profile {
+        mandatory true;
+        type leafref {
+          path "/utm/profiles/vpn/profile/id";
+        }
+      }
+      leaf business-registration-number {
+        reference "https://www.uen.gov.sg/ueninternet/faces/pages/admin/"+
+                  "aboutUEN.jspx?_afrLoop=1437954300054231&_afrWindowMode"+
+                  "=0&_adf.ctrl-state=ckrm2g1p7_38";
+        mandatory true;
+        type ut:brn-t;
+      }
+      leaf billing-account-number {
+        mandatory true;
+        type ut:ban-t;
+      }
+      container nat {
+        reference "[2] 6 Static NAT configuration";
+        leaf external-ip-address {
+          description "Must be within the same network as ../../wan/ip-address.";
+          mandatory true;
+          type inet:ipv4-address;
+        }
+        leaf mapped-ip-address {
+          description "Must be within the same network as ../../lan-ip-address.";
+          mandatory true;
+          type inet:ipv4-address;
+        }
+      }
+      leaf lan-ip-address {
+        reference "[2] 3 VDOM configuration and interface allocation";
+        mandatory true;
+        type tailf:ipv4-address-and-prefix-length;
+      }
+      container wan {
+        reference "[2] 3 VDOM configuration and interface allocation";
+        leaf ip-address {
+          mandatory true;
+          type tailf:ipv4-address-and-prefix-length;
+        }
+        leaf-list secondary-ip-address {
+          reference "[2] 3.1 Configuring secondary IP addresses on interfaces";
+          type tailf:ipv4-address-and-prefix-length;
+        }
+        leaf gateway {
+          description "Must be within the same ip-subnet as ../ip-address";
+          mandatory true;
+          type inet:ipv4-address;
+        }
+      }
+      container bgp {
+        reference "The BGP settings of the customer is derived as:
+                   * router-id: lan-ip-address
+                   * neighour ip: lan-ip-address - 1 - i.e. within the same /30 network.";
+        leaf remote-as-number {
+          reference "Default is calcuated as:
+                     - [access-type=='cplus']: 7473
+                     - [access-type=='megapop']: 9255";
+          type inet:as-number;
+        }
+        leaf as-number {
+          mandatory true;
+          type inet:as-number;
+        }
+      }
+      leaf site-code {
+        config false;
+        type string;
+      }
+      leaf site-code-c {
+        tailf:hidden do-not-change;
+        mandatory true;
+        type leafref {
+          path "/utm/sites/site/site-code";
+        }
+      }
+      leaf hostname {
+        config false;
+        type leafref {
+          path "/utm/sites/site[site-code=current()/../site-code]/"+
+            "pods/pod/hosts/host/hostname";
+        }
+      }
+      leaf local-vdom-id {
+        config false;
+        type leafref {
+          path "/utm/sites/site[site-code=current()/../site-code]/"+
+            "pods/pod/hosts/host[hostname=current()/../hostname]/"+
+            "vdoms/vdom/local-id";
+        }
+      }
+      leaf service-access-type {
+        config false;
+        type ut:service-access-type;
+      }
+      leaf service-access-type-c {
+        tailf:hidden do-not-change;
+        mandatory true;
+        type ut:service-access-type;
+      }
+      leaf bandwidth {
+        config false;
+        mandatory true;
+        type uint32;
+        units kbps;
+      }
+      leaf bandwidth-c {
+        tailf:hidden do-not-change;
+        mandatory true;
+        type uint32;
+        units kbps;
+      }
+    }
+  }
+}

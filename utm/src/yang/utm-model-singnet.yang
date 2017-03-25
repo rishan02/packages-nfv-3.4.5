@@ -1,0 +1,128 @@
+submodule utm-model-singnet {
+  belongs-to utm {
+    prefix utm;
+  }
+  import ietf-yang-types {
+    prefix yang;
+  }
+  import utm-types {
+    prefix ut;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  include utm-model;
+
+  revision "2017-02-02" {
+    description "Changed /utm/svcs/singnet/site-code and /utm/svcs/singnet/profile to config false.";
+  }
+  revision "2017-01-10" {
+    description "Updated with recent input from Thiyagu:
+                 * main-circuit-id
+                 * business-account-number => billing-account-number.";
+  }
+  revision "2016-12-20" {
+    description "Removed ip-address1 and ip-address1.";
+  }
+  revision "2016-12-15" {
+    description "Introduced POD level.";
+  }
+  revision "2016-12-13" {
+    description "Added reference to UC.";
+  }
+
+  identity singnet {
+    base utm-identity;
+  }
+  augment "/utm/sites/site" {
+    container singnet {
+      container available-profiles {
+        list vdom {
+          reference "UC-SVM[2,4]";
+          key "pod host local-id";
+          unique profile;
+          
+          leaf pod {
+            type leafref {
+              path "../../../../pods/pod/pod-name";
+            }
+          }
+          leaf host {
+            type leafref {
+              path "../../../../pods/pod[pod-name=current()/../pod]/hosts/host/hostname";
+            }
+          }
+          leaf local-id {
+            type leafref {
+              path "../../../../pods/pod[pod-name=current()/../pod]/hosts/host[hostname=current()/../host]/vdoms/vdom/local-id";
+            }
+          }
+          leaf profile {
+            mandatory true;
+            type leafref {
+              path "../../../../pods/pod[pod-name=current()/../pod]/hosts/host[hostname=current()/../host]/vdoms/vdom[local-id=current()/../local-id]/singnet/profile-id";
+            }
+          }
+        }
+      }
+    }
+  }
+
+  augment "/utm/svcs" {
+    list singnet {
+      //%service%svcs-singnet;
+      reference "UC-SN-[1,2,3,4,5]";
+      key nfv-vas-reference;
+
+      leaf nfv-vas-reference {
+        type ut:nfv-vas-ref-t;
+      }
+      leaf main-circuit-id {
+        description "This is the id of the end-to-end service to which
+                     this service belongs.";
+        mandatory true;
+        type string;
+      }
+      leaf business-registration-number {
+        mandatory true;
+        type ut:brn-t;
+      }
+      leaf billing-account-number {
+        mandatory true;
+        type ut:ban-t;
+      }
+      leaf bandwidth {
+        mandatory true;
+        type uint32;
+        units kbps;
+      }
+
+      leaf profile {
+        config false;
+        type string;
+      }
+      leaf site-code {
+        config false;
+        type leafref {
+          path "/utm/sites/site/site-code";
+        }
+      }
+      leaf hostname {
+        config false;
+        type leafref {
+          path "/utm/sites/site[site-code=current()/../site-code]/"+
+            "pods/pod/hosts/host/hostname";
+        }
+      }
+      leaf local-vdom-id {
+        config false;
+        type leafref {
+          path "/utm/sites/site[site-code=current()/../site-code]/"+
+            "pods/pod/hosts/host[hostname=current()/../hostname]/"+
+            "vdoms/vdom/local-id";
+        }
+      }
+    }
+  }
+}

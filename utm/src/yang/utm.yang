@@ -1,0 +1,118 @@
+module utm {
+  namespace "http://com.cisco/singtel/utm";
+  prefix utm;
+  include utm-rpc-singnet {
+    revision-date "2017-03-07";
+  }
+  include utm-rpc-vpn {
+    revision-date "2017-03-07";
+  }
+  include utm-model {
+    revision-date "2017-02-28";
+  }
+  include utm-model-singnet {
+    revision-date "2017-02-02";
+  }
+  include utm-model-vpn {
+    revision-date "2017-02-28";
+  }
+
+  reference "[1] SingTel NFV PoC Configuration For Transparent Mode FortiGate VDOMs, v1.2.8
+             [2] SingTel NFV PoC Configuration For NAT Mode FortiGate VDOMs, v1.3";
+  revision "2017-03-07" {
+    description "Removed mandatory true from create-singnet-utm-host/ingress/mac-address and
+                 create-singnet-utm-host/egress/mac-address in utm-rpc-singnet and
+                 create-vpn-utm-host/ingress/mac-address and
+                 create-vpn-utm-host/egress/mac-address in utm-rpc-vpn.";
+  }
+  revision "2017-02-28" {
+    description "Fixed access-service-type in utm-vpn-model and utm-model.";
+  }
+  revision "2017-02-21" {
+    description "model, rpc-vpn: Added service-access-type on host.";
+  }
+  revision "2017-02-16" {
+    description "fixed leafref in rpc-vpn that casue the CLI to crash";
+  }
+  revision "2017-02-16" {
+    description "rpc-vpn: updated according to clarifications about LAN and WAN ip addresses.
+                 model-vpn: updated according to clarifications about LAN and WAN ip addresses.";
+  }
+  revision "2017-02-14" {
+    description "Made svcs/vpn/profile to leafref and mandatory";
+  }
+  revision "2017-02-10" {
+    description "vpn: Updated according to latest meeting with Singtel.";
+  }
+  revision "2017-02-08" {
+    description "Including new versions of utm-rpc-vpn and utm-rpc-singnet";
+  }
+  revision "2017-02-01" {
+    description "String in profile tempalte-name";
+  }
+  revision "2017-01-31" {
+    description "Using the fixed utm-model which leafrefs the template name in singnet profile.";
+  }
+  revision "2017-01-27" {
+    description "Using the fixed utm-model which leafrefs the flavour in host service.";
+  }
+  revision "2017-01-26" {
+    description "*vpn: renamed ip-address1 and ip-address2 to
+                       ingress-ip-address and egress-ip-address.
+                 model:cvlan shall be config false since it is
+                       assigned by system.";
+  }
+  revision "2017-01-25" {
+    description "Removed cvlan from rpc. cvlan is calculated based on the local-vdom-id.
+                 local-vdom-id=1 => cvlan1=11, cvlan2=12
+                 local-vdom-id=2 => cvlan1=21, cvlan2=22
+                 ...";
+  }
+  revision "2017-01-24" {
+    description "MAC address shall be handled the same as svlan, i.e. one per port.";
+  }
+  revision "2017-01-23" {
+    description "Reduced the number of svlan. One per ingress and egress.";
+  }
+  revision "2017-01-17" {
+    description "model: Added flavour name override and image path for flavour.
+                 rpc-*: removed caller-id since there is no requirement on notifcations.";
+  }
+  revision "2017-01-12" {
+    description "Converted /utm/sites/pods/pod/hosts/host/vdoms into config false.";
+  }
+  revision "2017-01-11" {
+    description "Changes in:
+                * utm-rpc-[vpn,singnet] - removed response grouping since
+                  pyang can't handle it.";
+  }
+  revision "2017-01-10" {
+    description "Changes in:
+                 * utm-rpc-vpn
+                 * utm-rpc-singnet
+                 * utm-model
+                 * utm-model-vpn
+                 * utm-model-singnet
+                 * utm-types";
+  }
+  revision "2017-01-05" {
+    description "Renamed megapop => vpn.";
+  }
+  revision "2016-12-20" {
+    description "[*] Removed deref()
+                 [-rpc-singnet,
+                  -model-singnet] - Removed ip-address1 and ip-address1.";
+  }
+  revision "2016-12-19" {
+    description "[rpc-*, model] Revised to support new site model.";
+  }
+
+  revision "2016-12-15" {
+    description "Added POD as an element between site and esc.
+                 * utc-model - added pod level.
+                 * utc-model-singnet - updated according to change in -model.
+                 * utc-model-megapop - updated according to change in -model.
+                 * utc-rpc-singnet - introduced pod.
+                 * utc-rpc-megapop - introduced pod.";
+  }
+}

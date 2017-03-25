@@ -1,0 +1,6 @@
+<ncs-package xmlns="http://tail-f.com/ns/ncs-packages">
+  <name>hostname</name>
+  <package-version>0.0.1</package-version>
+  <description>hostname generator</description>
+  <ncs-min-version>4.2</ncs-min-version>
+</ncs-package>

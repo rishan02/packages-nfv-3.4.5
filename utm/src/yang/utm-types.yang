@@ -1,0 +1,53 @@
+module utm-types {
+  namespace "http://com.cisco/singtel/utm/types";
+  prefix ut;
+
+  revision "2017-02-21" {
+    description "Added service-access-type.";
+  }
+  revision "2017-01-10" {
+    description "Removed response-grp.";
+  }
+  revision "2016-12-13" {
+    description "Added vlan-id-t";
+  }
+
+  typedef brn-t {
+    type string;
+  }
+
+  typedef ban-t {
+    type string;
+  }
+
+  typedef nfv-vas-ref-t {
+    type string;
+  }
+  
+  typedef vlan-id-t {
+    type uint16 {
+      range "1..4094";
+    }
+  }
+  typedef service-access-type {
+    type enumeration {
+      enum cplus;
+      enum megapop;
+    }
+  }
+  
+  grouping capacity-grp {
+    container bandwidth {
+      leaf low {
+        mandatory true;
+        type uint32;
+        units kbps;
+      }
+      leaf high {
+        mandatory true;
+        type uint32;
+        units kbps;
+      }
+    }
+  }
+}

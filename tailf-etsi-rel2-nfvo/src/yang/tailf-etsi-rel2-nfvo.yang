@@ -1,0 +1,39 @@
+module tailf-etsi-rel2-nfvo {
+  namespace "http://tail-f.com/pkg/tailf-etsi-rel2-nfvo";
+  prefix nfvo-rel2;
+
+  include tailf-etsi-rel2-nfvo-common {
+    revision-date "2017-01-20";
+  }
+  include tailf-etsi-rel2-nfvo-ns {
+    revision-date "2017-01-20";
+  }
+  include tailf-etsi-rel2-nfvo-vnf {
+    revision-date "2017-01-20";
+  }
+
+  organization "Tail-f Systems";
+
+  description
+    "";
+
+  revision 2017-01-20 {
+    description
+      "Initial revision.
+       NSD according to ETSI GS NFV-IFA 014 V2.1.1 (2016-10)
+       VNFD according to ETSI GS NFV-IFA 011 V2.1.1 (2016-10)
+      ";
+  }
+
+  container nfvo {
+    uses vnfd;
+    uses nsd;
+
+    container vnf-info {}
+    container nsr {}
+    container ns-info {}
+
+    container onboarding {}
+
+ } // nfvo
+}

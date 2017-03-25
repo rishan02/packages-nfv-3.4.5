@@ -1,0 +1,373 @@
+submodule utm-rpc-singnet {
+  belongs-to utm {
+    prefix utm;
+  }
+
+  include utm-model;
+
+  include utm-model-singnet;
+
+  import ietf-yang-types {
+    prefix yang;
+  }
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-common {
+    prefix tailf;
+  }
+  import sites {
+    prefix sites;
+  }
+  import utm-types {
+    prefix ut;
+  }
+
+  revision "2017-03-07" {
+    description "Removed mandatory true from create-singnet-utm-host/ingress/mac-address and
+                 create-singnet-utm-host/egress/mac-address.";
+  }
+  revision "2017-02-28" {
+    description "Added host-not-ready to delete-singnet-utm-host";
+  }
+  revision "2017-02-08" {
+    description "Added invalid-license-format to create-singnet-utm-host";
+  }
+  revision "2017-01-25" {
+    description "Removed cvlan. cvlan is calculated based on the local-vdom-id. 
+                 local-vdom-id=1 => cvlan1=11, cvlan2=12 
+                 local-vdom-id=2 => cvlan1=21, cvlan2=22
+                 ...";
+  }
+  revision "2017-01-24" {
+    description "MAC address shall be handled the same as svlan, i.e. one per port.";
+  }
+  revision "2017-01-23" {
+    description "Reduced the number of svlan. One per ingress and egress.";
+  }
+  revision "2017-01-17" {
+    description "removed caller-id since there is no requirement on notifcations.";
+  }
+  revision "2017-01-11" {
+    description "removed response grouping since pyang can't handle it.";
+  }
+  revision "2017-01-10" {
+    description "1) Updated with recent input from Thiyagu:
+                 * Introduced hierarchical selection of resources:
+                   site, pod, dci, dci-link-ep.
+                 * Introduced service-access-type that shall be used for
+                   selection of dci-link-ep is dci-link-ep is not given.
+                 * Introduced input for vnf/pnf selection. Note that pnf
+                   selection is not supported.
+                 * Introduced cvlan per vdom.
+                 2) Changed response structure due to a problem with NSO.
+                 3) Updated response-codes.
+                 4) New feature needed to override MAC-address per port.";
+  }
+  revision "2016-12-20" {
+    description "Removed ip-address1 and ip-address1.";
+  }
+  revision "2016-12-19" {
+    description "Revised to support new site model.";
+  }
+  revision "2016-12-15" {
+    description "Introduced POD level.";
+  }
+
+  revision "2016-12-13" {
+    description "Added reference tags.";
+  }
+
+
+  /*
+    SingNet Host Create
+  */
+  rpc create-singnet-utm-host {
+    reference "UC-SVM1";
+    input {
+      leaf site-code {
+        mandatory true;
+        type leafref {
+          path "/sites:sites/sites:site/sites:site-code";
+        }
+      }
+      leaf pod {
+        when "../site-code";
+        reference "If pod is omitted, select preferred pod from site.";
+        type leafref {
+          path "/sites:sites/sites:site[sites:site-code=current()/../site-code]/"+
+            "sites:pods/sites:pod/sites:pod-name";
+        }
+      }
+      leaf dci {
+        when "../pod";
+        reference "If dci is omitted, select preferred singnet dci from pod.";
+        type leafref {
+          path "/sites:sites/sites:site[sites:site-code=current()/../site-code]/"+
+            "sites:pods/sites:pod[sites:pod-name=current()/../pod]/sites:dci/sites:dci-name";
+        }
+      }
+      leaf dci-link-end-point {
+        when "../dci";
+        reference "If the dci-link-ep is omitted, select preferred singnet
+                   dci-link-ep from dci.";
+        type leafref {
+          path "/sites:sites/sites:site[sites:site-code=current()/../site-code]/"+
+            "sites:pods/sites:pod[sites:pod-name=current()/../pod]/"+
+            "sites:dci[sites:dci-name=current()/../dci]/"+
+            "sites:dci-link/sites:link-end-point-id";
+        }
+      }
+      leaf override-mac-address {
+        description "If this is set all vdom interface MAC addresses must be overridden.";
+        type empty;
+      }
+      container ingress {
+        leaf mac-address {
+          when "../../override-mac-address";
+          type yang:mac-address;
+        }
+      }
+      container egress {
+        leaf mac-address {
+          when "../../override-mac-address";
+          type yang:mac-address;
+        }
+      }
+      container vdom1 {
+        leaf profile {
+          mandatory true;
+          type leafref {
+            path "/utm/profiles/singnet/profile/id";
+          }
+        }
+      }
+      container vdom2 {
+        leaf profile {
+          mandatory true;
+          type leafref {
+            path "/utm/profiles/singnet/profile/id";
+          }
+        }
+      }
+      choice nf-type {
+        mandatory true;
+        container virtual {
+          presence "If virtual";
+          leaf flavour {
+            mandatory true;
+            type leafref {
+              path "/utm/flavours/flavour/id";
+            }
+          }
+          leaf license {
+            mandatory true;
+            type string;
+          }
+        }
+      }
+    }
+    output {
+      leaf result {
+        type enumeration {
+          enum ok;
+          enum ng;
+        }
+      }
+      container detail {
+        when "../result='ok'";
+        leaf hostname {
+          mandatory true;
+          type string;
+        }
+        leaf mgmt-ip-address {
+          mandatory true;
+          type inet:ipv4-address;
+        }
+        leaf dci-link-end-point {
+          reference "The selected dci-link-ep.";
+          type leafref {
+            path "/sites:sites/sites:site/"+
+              "sites:pods/sites:pod/"+
+              "sites:dci/"+
+              "sites:dci-link/sites:link-end-point-id";
+          }
+        }
+        container ingress {
+          leaf svlan-id {
+            type ut:vlan-id-t;
+          }
+        }
+        container egress {
+          leaf svlan-id {
+            type ut:vlan-id-t;
+          }
+        }
+      }
+      container error {
+        when "../result='ng'";
+        leaf errno {
+          type enumeration {
+            enum no-such-site;
+            enum no-such-pod;
+            enum no-such-dci;
+            enum no-such-link-endpoint;
+            enum no-such-link-endpoint-service-type;
+            enum no-such-profile;
+            enum no-such-flavour;
+            enum invalid-license-format;
+            enum svlan-id-exhausted;
+            enum mgmt-ip-exhausted;
+            enum unexpected-error;
+          }
+        }
+      }
+    }
+  }
+  /*
+    SingNet Host Delete
+  */
+  rpc delete-singnet-utm-host {
+    reference "UC-SVM3";
+    input {
+      leaf hostname {
+        mandatory true;
+        type string;
+      }
+    }
+    output {
+      leaf result {
+        type enumeration {
+          enum ok;
+          enum ng;
+        }
+      }
+      container detail {
+        when "../result='ok'";
+      }
+      container error {
+        when "../result='ng'";
+        leaf errno {
+          type enumeration {
+            enum no-such-host;
+            enum host-not-ready;
+            enum host-in-use;
+            enum unexpected-error;
+          }
+        }
+      }
+    }
+  }
+
+  /*
+    SingNet Customer Create
+  */
+
+  rpc create-singnet-utm-customer {
+    reference "UC-SN1";
+    input {
+      leaf nfv-vas-reference {
+        mandatory true;
+        type string;
+      }
+      leaf main-circuit-id {
+        mandatory true;
+        type string;
+      }
+      leaf site-code {
+        mandatory true;
+        type leafref {
+          path "/utm/sites/site/site-code";
+        }
+      }
+      leaf profile {
+        mandatory true;
+        type leafref {
+          path "/utm/sites/site[site-code=current()/../site-code]/"+
+            "singnet/available-profiles/vdom/profile";
+        }
+      }
+      leaf business-registration-number {
+        mandatory true;
+        type ut:brn-t;
+      }
+      leaf billing-account-number {
+        mandatory true;
+        type ut:ban-t;
+      }
+      leaf bandwidth {
+        mandatory true;
+        type uint32;
+        units kbps;
+      }
+    }
+    output {
+      leaf result {
+        type enumeration {
+          enum ok;
+          enum ng;
+        }
+      }
+      container detail {
+        when "../result='ok'";
+        leaf hostname {
+          mandatory true;
+          type string;
+        }
+        leaf local-vdom-id {
+          mandatory true;
+          type uint8 {
+            range "1..max";
+          }
+        }
+      }
+      container error {
+        when "../result='ng'";
+        leaf errno {
+          type enumeration {
+            enum no-such-site;
+            enum no-such-profile;
+            enum customer-already-exists;
+            enum unexpected-error;
+          }
+        }
+      }
+    }
+  }
+
+  /*
+    SingNet Customer Delete
+  */
+
+  rpc delete-singnet-utm-customer {
+    reference "UC-SN5";
+    input {
+      leaf nfv-vas-reference {
+        mandatory true;
+        type leafref {
+          path "/utm/svcs/singnet/nfv-vas-reference";
+        }
+      }
+    }
+    output {
+      leaf result {
+        type enumeration {
+          enum ok;
+          enum ng;
+        }
+      }
+      container detail {
+        when "../result='ok'";
+      }
+      container error {
+        when "../result='ng'";
+        leaf errno {
+          type enumeration {
+            enum no-such-customer;
+            enum unexpected-error;
+          }
+        }
+      }
+    }
+  }
+}

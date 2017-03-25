@@ -1,0 +1,22 @@
+<ncs-pkg-build xmlns='http://tail-f.com/ns/ncs-pkg-build'>
+    <date>2015-11-27 01:29:57</date>
+    <file>ncs-4.1-nso-util-1.0.tar.gz</file>
+    <type>release</type>
+    <arch>linux.x86_64</arch>
+    <java>compiled Java class data, version 50.0 (Java 1.6)</java>
+    <package>
+        <name>nso-util</name>
+        <version>1.0</version>
+        <ref>1.0</ref>
+        <sha1>0d0f8bd</sha1>
+    </package>
+    <ncs>
+        <version>4.1</version>
+        <sha1></sha1>
+    </ncs>
+    <dev-support>
+        <version>1.0</version>
+        <branch>master</branch>
+        <sha1>53b5601</sha1>
+    </dev-support>
+</ncs-pkg-build>

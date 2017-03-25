@@ -1,0 +1,298 @@
+submodule utm-model {
+  belongs-to utm {
+    prefix utm;
+  }
+  import ietf-yang-types {
+    prefix yang;
+  }
+  import sites {
+    prefix sites;
+  }
+
+  import utm-types {
+    prefix ut;
+  }
+
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  import tailf-common {
+      prefix tailf;
+  }
+  revision "2017-02-28" {
+    description "Fixed access-service-type so that we cna have callpoint.";
+  }
+  revision "2017-02-21" {
+    description "Added service-access-type on host.";
+  }
+  revision "2017-02-02" {
+    description "Hide pofile-id and show it via oper leaf instead";
+  }
+  revision "2017-02-01" {
+    description "Switch back template name to string, we need to validate it manually";
+  }
+  revision "2017-01-31" {
+    description "Leafref for template name in signet profile.";
+  }
+
+  revision "2017-01-27" {
+    description "Leafref for flavour in virtual choice.";
+  }
+
+  revision "2017-01-26" {
+    description "cvlan shall be config false since it is assigned by system.";
+  }
+  revision "2017-01-24" {
+    description "MAC address shall be handled the same as svlan, i.e. one per port.";
+  }
+  revision "2017-01-23" {
+    description "Reduced the number of svlan. One per ingress and egress.";
+  }
+  revision "2017-01-18" {
+    description "Added license under utm/sites/site/pods/pod/hosts/host.";
+  }
+  revision "2017-01-17" {
+    description "Added flavour name override and image path for flavour.";
+  }
+  revision "2017-01-13" {
+    description "Added missing utm: in front i vpn and singnet under utm/sites/site/pods/pod/hosts/host/vdoms/vdom/vpn(singnet).";
+  }
+  revision "2017-01-12" {
+    description "Converted /utm/sites/pods/pod/hosts/host/vdoms/port into config false.";
+  }
+  revision "2017-01-10" {
+    description "Updated with recent input from Thiyagu:
+                 * introduced dci between pod and dci-link-ep.";
+  }
+  revision "2016-12-20" {
+    description "Removed deref().";
+  }
+  revision "2016-12-19" {
+    description "Revised to support new site model.";
+  }
+  revision "2016-12-15" {
+    description "Introduced POD level and:
+                 * added variable max-no-of-vdom per flavour.
+                 * added tenant in pod.
+                 * changed max vdom to uint8 max. on host
+                 * made capacity limits mandatory on flavour.";
+  }
+  revision "2016-12-13" {
+    description "Added reference to UC.";
+  }
+
+  identity utm-identity;
+  
+  container utm {
+    container sites {
+      list site {
+        key site-code;
+        leaf site-code {
+          type leafref {
+            path "/sites:sites/sites:site/sites:site-code";
+          }
+        }
+        container pods {
+          list pod {
+            key pod-name;
+            leaf pod-name {
+              type leafref {
+                path "/sites:sites/sites:site[sites:site-code=current()/../../../site-code]/"+
+                  "sites:pods/sites:pod/sites:pod-name";
+              }
+            }
+            leaf tenant {
+              type string;
+              default "admin";
+            }
+            container hosts {
+              list host {
+                //%service%hosts;
+                key hostname;
+                leaf hostname {
+                  mandatory true;
+                  type string;
+                }
+                leaf service-access-type {
+                  when "../vnf-type='utm:vpn'";
+                  description "Only when VPN UTM host.";
+                  config false;
+                  type ut:service-access-type;
+                }
+                leaf service-access-type-c {
+                  when "../vnf-type='utm:vpn'";
+                  mandatory true;
+                  tailf:hidden do-not-change;
+                  type ut:service-access-type;
+                }
+                leaf dci {
+                  mandatory true;
+                  type leafref {
+                    path "/sites:sites/sites:site[sites:site-code=current()/../../../../../site-code]/"+
+                      "sites:pods/sites:pod[sites:pod-name=current()/../../../pod-name]/"+
+                      "sites:dci/sites:dci-name";
+                  }
+                }
+                leaf dci-link-ep {
+                  mandatory true;
+                  type leafref {
+                    path "/sites:sites/sites:site[sites:site-code=current()/../../../../../site-code]/"+
+                      "sites:pods/sites:pod[sites:pod-name=current()/../../../pod-name]/"+
+                      "sites:dci[sites:dci-name=current()/../dci]/sites:dci-link/sites:link-end-point-id";
+                  }
+                }
+                leaf vnf-type {
+                  mandatory true;
+                  type identityref {
+                    base utm-identity;
+                  }
+                }
+                leaf license {
+                  mandatory true;
+                  type string;
+                }
+                choice deployment {
+                  case physical {
+                  }
+                  case virtual {
+                    reference "UC-SVM1";
+                    leaf flavour {
+                      mandatory true;
+                      type leafref {
+                        path "/utm/flavours/flavour/id";
+                      }
+                    }
+                    leaf state {
+                      config false;
+                      type enumeration {
+                        enum enabled;
+                        enum disabled;
+                      }
+                    }
+                    container ingress {
+                      leaf svlan-id {
+                        config false;
+                        type ut:vlan-id-t;
+                      }
+                      leaf mac-address {
+                        type yang:mac-address;
+                      }
+                    }
+                    container egress {
+                      leaf svlan-id {
+                        config false;
+                        type ut:vlan-id-t;
+                      }
+                      leaf mac-address {
+                        type yang:mac-address;
+                      }
+                    }
+                  }
+                }
+                uses ut:capacity-grp;
+                container vdoms {
+                  list vdom {
+                    key local-id;
+                    leaf local-id {
+                      description "This id will be used to create the vdom name: vdom<local-id>";
+                      type uint8 {
+                        range "1..max";
+                      }
+                    }
+                    container vpn {
+                      when "../../../vnf-type='utm:vpn'";
+                      container ingress {
+                        leaf cvlan-id {
+                          config false;
+                          type ut:vlan-id-t;
+                        }
+                      }
+                      container egress {
+                        leaf cvlan-id {
+                          config false;
+                          type ut:vlan-id-t;
+                        }
+                      }
+                    }
+                    container singnet {
+                      when "../../../vnf-type='utm:singnet'";
+                      leaf profile {
+                        config false;
+                        type string;
+                      }
+                      leaf profile-id {
+                        tailf:hidden do-not-change;
+                        mandatory true;
+                        type leafref {
+                          path "/utm/profiles/singnet/profile/id";
+                        }
+                      }
+                      container path1 {
+                        leaf cvlan-id {
+                          config false;
+                          type ut:vlan-id-t;
+                        }
+                      }
+                      container path2 {
+                        leaf cvlan-id {
+                          config false;
+                          type ut:vlan-id-t;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    container profiles {
+      container singnet {
+        list profile {
+          reference "UC-SPM-[1,2,3]";
+          key id;
+          leaf id {
+            type string;
+          }
+          leaf template-name {
+            mandatory true;
+            type string;
+          }
+        }
+      }
+    }
+    container flavours {
+      list flavour {
+        reference "UC-FLM-[1,2,3]";
+        key id;
+        leaf id {
+          description "Name used by NFVO.";
+          type string;
+        }
+        leaf max-vdoms-per-host {
+          default 4;
+          type uint8 {
+            range "1..max";
+          }
+        }
+        leaf flavour-override {
+          description "The flavour name in Openstack if other than id.";
+          type string;
+        }
+        leaf image {
+          description "The image path to use for the flavour.";
+          mandatory true;
+          type string;
+        }
+        container capacity {
+          uses ut:capacity-grp;
+        }
+      }
+    }
+    container svcs {
+    }
+  }
+}

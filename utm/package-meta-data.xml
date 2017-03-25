@@ -1,0 +1,8 @@
+<ncs-package xmlns="http://tail-f.com/ns/ncs-packages">
+  <name>utm</name>
+  <package-version>0.3.1</package-version>
+  <description>Interface specification for SingTel UTM services.</description>
+  <ncs-min-version>4.2</ncs-min-version>
+  <!-- It's possible to add more components to the -->
+  <!-- same package, multiple services, data providers etc -->
+</ncs-package>

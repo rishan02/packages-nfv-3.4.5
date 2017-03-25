@@ -1,0 +1,258 @@
+module sites {
+  namespace "http://com/singtel/sites";
+  prefix sites;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-common {
+    prefix tailf;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+  
+   revision "2017-02-15" {
+    description "changed type to leafref for dci-name";
+  }
+  
+   revision "2017-02-13" {
+    description "made link end point id as mandatory";
+  }
+  
+   revision "2017-02-09" {
+    description "Provided default values for physical network and management network name";
+  }
+  
+   revision "2017-02-03" {
+    description "Pod level changes to include network names and adding pod level parameters (removed network names at DCI level)";
+  }
+  
+   revision "2017-02-02" {
+    description "Pod level changes to include network names and adding pod level parameters (removed network names at DCI level)";
+  }
+
+  revision "2017-01-18" {
+    description "Revised dci-link to describe in (ASBR side) and out (DCN side)";
+  }
+  
+  identity nfv-type;
+  
+  identity utm-type {
+    base "nfv-type";
+  }
+
+  identity vcpe-type {
+    base "nfv-type";
+  }
+
+  
+  container sites {
+    list site {
+      key "site-code";
+      unique site-name;
+
+   
+      leaf site-code {
+        tailf:info "Unique site code for datacenter";
+        type string;
+      }
+      leaf site-name {
+        tailf:info "Name of datacenter site";
+        type string;
+      }
+          
+      leaf preferred-pod {
+        tailf:info "Preferred pod where a VNF creation will be provisioned";
+        mandatory true;
+        type leafref {
+          path "../pods/pod/pod-name";
+        }
+      }
+          
+      container pods {
+        list pod {
+          uses ncs:service-data;
+          ncs:servicepoint pod-sp;
+          
+          key pod-name;
+          leaf pod-name {
+            type string;
+          }
+          leaf esc {
+            tailf:info "ESC device managing virtual environment of this pod";
+            mandatory true;
+            type leafref {
+              path "/ncs:devices/ncs:device/ncs:name";
+            }
+          }
+		   leaf vnf-physical-network {
+              tailf:info "Physical network name used for vnf ingress and egress networks";
+              type string;
+              default "vnf";
+            }
+            leaf mgmt-network-name {
+              tailf:info "Management network name";
+              type string;
+              default "ops_mgmt";
+            }
+           
+			
+          container mgmt-ip-addr-pool {
+            list range {
+              key "from";
+                          
+              leaf from {
+                type inet:ipv4-address;
+              }
+              leaf to {
+                mandatory true;
+                type inet:ipv4-address;
+                must "current()>=../from";
+              }
+              leaf nfv-type {
+                mandatory true;
+                type identityref {
+                  base "nfv-type";
+                }
+              }
+            }
+          }
+                  
+          leaf preferred-dci {
+            tailf:info "Preferred DCI to be used for provisioning new service";
+            mandatory true;
+            type leafref {
+              path "../dci/dci-name";
+            }
+          }
+          list dci {
+            tailf:info "DCI for a pod";
+            key "dci-name";
+                        
+            leaf dci-name {
+              tailf:info "Data Center Interconnect Name for a POD";
+              type leafref {
+                  path "/ncs:devices/ncs:device/ncs:name";
+                }
+            }
+            leaf preferred-singnet-link {
+              tailf:info "Preferred DCI link used in service creation if singnet service creation does not specify a dci link-end-point-id";
+              mandatory true;                     
+              type leafref {
+                path "../dci-link/link-end-point-id"; 
+              }
+            }
+            leaf preferred-megapop-link {
+              tailf:info "Preferred DCI link used in service creation if megapop service creation does not specify a dci link-end-point-id";
+              mandatory true;
+              type leafref {
+                path "../dci-link/link-end-point-id"; 
+              }
+            }
+            leaf preferred-cplus-link {
+              tailf:info "Preferred DCI link used in service creation if cplus service creation does not specify a dci link-end-point-id";
+              mandatory true;
+              type leafref {
+                path "../dci-link/link-end-point-id"; 
+              }
+            }
+
+            container dci-mc-lag {
+              leaf dci-device-node1 {
+                tailf:info "DCI device node 1 name";
+                type leafref {
+                  path "/ncs:devices/ncs:device/ncs:name";
+                }
+              }
+              leaf dci-device-node2 {
+                tailf:info "DCI device node 2 name";
+                type leafref {
+                  path "/ncs:devices/ncs:device/ncs:name";
+                }
+              }
+            }
+           
+            list dci-link {
+              tailf:info "Details of DCI links in this pod";
+              key "if-type-in if-name-in";
+              unique link-end-point-id;
+    
+              leaf if-type-in {
+                description "ASBR site interface type.";
+                tailf:info "ASBR site interface type.";
+                type string;
+              }
+              leaf if-name-in {
+                description "ASBR site interface name.";
+                tailf:info "ASBR interface name or number";
+                type string;
+              }
+              leaf link-end-point-id {
+                type string; //Please add Regexp for fixing a format and range
+                mandatory true;
+              }
+              leaf if-type-out {
+                description "DCN side interface type.";
+                tailf:info "DCN side interface type.";
+                default "Bundle_Ether";
+                type string;
+              }
+              leaf if-name-out {
+                description "DCN side interface name.";
+                mandatory true;
+                tailf:info "DCN side interface name.";
+                type string;
+              }
+              leaf-list service-type {
+                type enumeration {
+                  enum dcn {
+                    tailf:info "This link is connected to DC switch";
+                  }
+                  enum megapop {
+                    tailf:info "This link is connected to Megapop ASBR";
+                  }
+                  enum cplus {
+                    tailf:info "This link is connected to ConnectedPlus";
+                  }
+                  enum singnet {
+                    tailf:info "This link is connected to SingNet";
+                  }
+                }
+              }
+              container vlan-pool {
+                list range {
+                  key "from to";
+                  leaf from {
+                    type uint16 {
+                      range "1..4095";
+                    }
+                  }
+                  leaf to {
+                    type uint16 {
+                      range "1..4095";
+                    }
+                    must "current() >= ../from";
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+	
+  	list sys-config-params {
+	  tailf:info "List of Name value pairs used within system level misc configuration";
+	  key param-name;
+	  leaf param-name {
+	    tailf:info "Name of parameter e.g. csr-auth-group";
+		type string;
+	  }
+	  leaf param-value {
+	    tailf:info "Value assigned to parameter at each system level";
+		type string;
+	  }
+	}
+  }
+}

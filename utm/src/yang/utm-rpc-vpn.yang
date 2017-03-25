@@ -1,0 +1,522 @@
+submodule utm-rpc-vpn {
+  belongs-to utm {
+    prefix utm;
+  }
+  include utm-model;
+  include utm-model-vpn;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import ietf-yang-types {
+    prefix yang;
+  }
+  import tailf-common {
+    prefix tailf;
+  }
+  import sites {
+    prefix sites;
+  }
+  import utm-types {
+    prefix ut;
+  }
+
+  reference "[2] SingTel NFV PoC Configuration For NAT Mode FortiGate VDOMs, v1.3";
+
+  revision "2017-03-07" {
+    description "Removed mandatory true from create-vpn-utm-host/ingress/mac-address and
+                 create-vpn-utm-host/egress/mac-address.";
+  }
+  revision "2017-02-28" {
+    description "Added host-not-ready to delete-vpn-utm-host";
+  }
+  revision "2017-02-21" {
+    description "Added service-access-type on create-vpn-utm-customer.";
+  }
+  revision "2017-02-16" {
+    description "Removed site-code leafref in create customer, this caused the CLI to crash sometime.";
+  }
+  revision "2017-02-16" {
+    description "Corrected WAN/LAN IP address input.";
+  }
+  revision "2017-02-12" {
+    description "Remote-as must be possible to override.";
+  }
+  revision "2017-02-10" {
+    description "Updated according to latest meeting with Singtel.";
+  }
+  revision "2017-02-08" {
+    description "Added new attributes.";
+  }
+  revision "2017-02-08" {
+    description "Added invalid-license-format to create-vpn-utm-host";
+  }
+  revision "2017-02-01" {
+    description "Added customer-already-exists error to create-vpn-utm-customer.
+                 Added more output to create-vpn-utm-customer.";
+  }
+  revision "2017-01-26" {
+    description "Changed ip-address1 and ip-address2 to ingress-ip-address
+                 and egress-ip-address.";
+  }
+  revision "2017-01-25" {
+    description "Removed cvlan. cvlan is calculated based on the local-vdom-id. 
+                 local-vdom-id=1 => cvlan1=11, cvlan2=12 
+                 local-vdom-id=2 => cvlan1=21, cvlan2=22
+                 ...";
+  }
+  revision "2017-01-24" {
+    description "MAC address shall be handled the same as svlan, i.e. one per port.";
+  }
+  revision "2017-01-23" {
+    description "Reduced the number of svlan. One per ingress and egress.";
+  }
+  revision "2017-01-17" {
+    description "removed caller-id since there is no requirement on notifcations.";
+  }
+  revision "2017-01-11" {
+    description "removed response grouping since pyang can't handle it.";
+  }
+  revision "2017-01-10" {
+    description "1) Updated with recent input from Thiyagu:
+                 * Introduced hierarchical selection of resources:
+                   site, pod, dci, dci-link-ep.
+                 * Introduced service-access-type that shall be used for
+                   selection of dci-link-ep is dci-link-ep is not given.
+                 * Introduced input for vnf/pnf selection. Note that pnf
+                   selection is not supported.
+                 * Changed no-vdom to list of vdom since each vdom needs
+                   to be given cvlan.
+                 2) Changed response structure due to a problem with NSO..
+                 3) Updated response-codes.
+                 4) New feature needed to override MAC-address per port.";
+  }
+  revision "2017-01-05" {
+    description "Renamed megapop => vpn.";
+  }
+  revision "2016-12-20" {
+    description "Removed deref().";
+  }
+  revision "2016-12-19" {
+    description "Revised to support new site model.";
+  }
+  revision "2016-12-15" {
+    description "Introduced POD level.";
+  }
+
+  grouping vpn-response-grp {
+    leaf result {
+      type enumeration {
+        enum ok;
+        enum ng;
+      }
+    }
+    container detail {
+      when "../result='ok'";
+    }
+    container error {
+      when "../result='ng'";
+    }
+  }
+
+  /*
+    Vpn Host Create
+  */
+
+  rpc create-vpn-utm-host {
+    input {
+      leaf site-code {
+        mandatory true;
+        type leafref {
+          path "/sites:sites/sites:site/sites:site-code";
+        }
+      }
+      leaf pod {
+        when "../site-code";
+        type leafref {
+          path "/sites:sites/sites:site[sites:site-code=current()/../site-code]/"+
+            "sites:pods/sites:pod/sites:pod-name";
+        }
+      }
+      leaf dci {
+        when "../pod";
+        type leafref {
+          path "/sites:sites/sites:site[sites:site-code=current()/../site-code]/"+
+            "sites:pods/sites:pod[sites:pod-name=current()/../pod]/sites:dci/sites:dci-name";
+        }
+      }
+      leaf dci-link-end-point {
+        when "../dci";
+        reference "If the dci-link-ep is omitted, select preferred from pod.";
+        type leafref {
+          path "/sites:sites/sites:site[sites:site-code=current()/../site-code]/"+
+            "sites:pods/sites:pod[sites:pod-name=current()/../pod]/"+
+            "sites:dci[sites:dci-name=current()/../dci]/"+
+            "sites:dci-link/sites:link-end-point-id";
+        }
+      }
+      leaf service-access-type {
+        mandatory true;
+        description "If dci/dci-link-end-point is not specified the service access type is used for selection of the dci-link-ep.
+                     A POD has one preferred dci-link-ep per service-access-type.";
+        type ut:service-access-type;
+      }
+      leaf override-mac-address {
+        description "If this is set all vdom interface MAC addresses must be overridden.";
+        type empty;
+      }
+      container ingress {
+        leaf mac-address {
+          when "../../override-mac-address";
+          type yang:mac-address;
+        }
+      }
+      container egress {
+        leaf mac-address {
+          when "../../override-mac-address";
+          type yang:mac-address;
+        }
+      }
+      list vdom {
+        min-elements 1;
+        key local-vdom-id;
+        leaf local-vdom-id {
+          type uint8 {
+            range "1..4";
+          }
+        }
+      }
+      choice nf-type {
+        mandatory true;
+        container virtual {
+          presence "If virtual";
+          leaf flavour {
+            mandatory true;
+            type leafref {
+              path "/utm/flavours/flavour/id";
+            }
+          }
+          leaf license {
+            mandatory true;
+            type string;
+          }
+        }
+      }
+    }
+    output {
+      leaf result {
+        type enumeration {
+          enum ok;
+          enum ng;
+        }
+      }
+      container detail {
+        when "../result='ok'";
+        leaf hostname {
+          mandatory true;
+          type string;
+        }
+        leaf mgmt-ip-address {
+          mandatory true;
+          type inet:ipv4-address;
+        }
+        leaf dci-link-end-point {
+          reference "The selected dci-link-ep.";
+          type leafref {
+            path "/sites:sites/sites:site/"+
+                "sites:pods/sites:pod/"+
+              "sites:dci/"+
+              "sites:dci-link/sites:link-end-point-id";
+          }
+        }
+        container ingress {
+          leaf svlan-id {
+            type ut:vlan-id-t;
+          }
+        }
+        container egress {
+          leaf svlan-id {
+            type ut:vlan-id-t;
+          }
+        }
+        list vdom {
+          key "local-vdom-id";
+          leaf local-vdom-id {
+            type uint8 {
+              range "1..4";
+            }
+          }
+        }
+      }
+      container error {
+        when "../result='ng'";
+        leaf errno {
+          type enumeration {
+            enum no-such-site;
+            enum no-such-pod;
+            enum no-such-dci;
+            enum no-such-link-endpoint;
+            enum no-such-link-endpoint-service-type;
+            enum no-such-flavour;
+            enum no-vdoms-specified;
+            enum flavour-max-vdoms-per-host-exceeded;
+            enum invalid-license-format;
+            enum svlan-id-exhausted;
+            enum mgmt-ip-exhausted;
+            enum unexpected-error;
+          }
+        }
+      }
+    }
+  }
+
+  /*
+    Vpn Host Delete
+  */
+
+  rpc delete-vpn-utm-host {
+    input {
+      leaf hostname {
+        mandatory true;
+        type string;
+      }
+    }
+    output {
+      leaf result {
+        type enumeration {
+          enum ok;
+          enum ng;
+        }
+      }
+      container detail {
+        when "../result='ok'";
+      }
+      container error {
+        when "../result='ng'";
+        leaf errno {
+          type enumeration {
+            enum no-such-host;
+            enum host-not-ready;
+            enum host-in-use;
+            enum unexpected-error;
+          }
+        }
+      }
+    }
+  }
+
+  /*
+    Vpn Customer Create
+  */
+
+  rpc create-vpn-utm-customer {
+    input {
+      leaf nfv-vas-reference {
+        mandatory true;
+        type string;
+      }
+      leaf main-circuit-id {
+        mandatory true;
+        type string;
+      }
+      leaf site-code {
+        mandatory true;
+        type string;
+      }
+      leaf profile {
+        mandatory true;
+        type leafref {
+          path "/utm/profiles/vpn/profile/id";
+        }
+      }
+      leaf business-registration-number {
+        mandatory true;
+        type string;
+      }
+      leaf billing-account-number {
+        mandatory true;
+        type string;
+      }
+      leaf service-access-type {
+        mandatory true;
+        type ut:service-access-type;
+      }
+      container nat {
+        reference "[2] 6 Static NAT configuration";
+        leaf external-ip-address {
+          description "Must be within the same network as ../../wan/ip-address.";
+          mandatory true;
+          type inet:ipv4-address;
+        }
+        leaf mapped-ip-address {
+          description "Must be within the same network as ../../lan-ip-address.";
+          mandatory true;
+          type inet:ipv4-address;
+        }       
+      }
+      leaf lan-ip-address {
+        reference "[2] 3 VDOM configuration and interface allocation";
+        mandatory true;
+        type tailf:ipv4-address-and-prefix-length;
+      }
+      container wan {
+        reference "[2] 3 VDOM configuration and interface allocation";
+        leaf ip-address {
+          mandatory true;
+          type tailf:ipv4-address-and-prefix-length;
+        }
+        leaf-list secondary-ip-address {
+          reference "[2] 3.1 Configuring secondary IP addresses on interfaces";
+          type tailf:ipv4-address-and-prefix-length;
+        }
+        leaf gateway {
+          description "Must be within the same ip-subnet as ../ip-address";
+          mandatory true;
+          type inet:ipv4-address;
+        }
+      }
+      container bgp {
+        reference "The BGP settings of the customer is derived as:
+                   * router-id: lan-ip-address
+                   * neighour ip: lan-ip-address - 1 - i.e. within the same /30 network.";
+        leaf remote-as-number {
+          reference "Default is calcuated as: 
+                     - [access-type=='cplus']: 7473
+                     - [access-type=='megapop']: 9255";
+          type inet:as-number;
+        }
+        leaf as-number {
+          mandatory true;
+          type inet:as-number;
+        }
+      }
+      leaf bandwidth {
+        mandatory true;
+        units kbps;
+        type uint32;
+      }
+    }
+    output {
+      leaf result {
+        type enumeration {
+          enum ok;
+          enum ng;
+        }
+      }
+      container detail {
+        when "../result='ok'";
+        leaf hostname {
+          mandatory true;
+          type string;
+        }
+        leaf local-vdom-id {
+          mandatory true;
+          type uint8 {
+            range "1..max";
+          }
+        }
+      }
+      container error {
+        when "../result='ng'";
+        leaf errno {
+          type enumeration {
+            enum no-such-profile;
+            enum no-such-site;
+            enum wan-ip-address-not-unique {
+              reference "IP addresses given within the wan container must be unique. ";
+            }
+            enum wan-ip-address-subnet-error {
+              reference "WAN ip addresses must all shar ethe same subnet.";
+            }
+            enum customer-already-exists;
+            enum vdom-exhausted;
+            enum unexpected-error;
+          }
+        }
+      }
+    }
+  }
+
+  /*
+    Vpn Customer Modify
+  */
+  rpc modify-vpn-utm-customer {
+    input {
+      leaf nfv-vas-reference {
+        mandatory true;
+        type string;
+      }
+      leaf profile {
+        type leafref {
+          path "/utm/profiles/vpn/profile/id";
+        }
+      }
+      leaf bandwidth {
+        type uint32;
+        units kbps;
+      }
+    }
+    output {
+      leaf result {
+        type enumeration {
+          enum ok;
+          enum ng;
+        }
+      }
+      container detail {
+        when "../result='ok'";
+        container vdom {
+          leaf hostname {
+            mandatory true;
+            type string;
+          }
+          leaf local-vdom-id {
+            mandatory true;
+            type uint8 {
+              range "1..4";
+            }
+          }
+        }
+      }
+      container error {
+        when "../result='ng'";
+        leaf errno {
+          type enumeration {
+            enum no-such-customer;
+            enum vdom-exhausted;
+            enum unexpected-error;
+          }
+        }
+      }
+    }
+  }
+
+  /*
+    Vpn Customer Delete
+  */
+  rpc delete-vpn-utm-customer {
+    input {
+      leaf nfv-vas-reference {
+        mandatory true;
+        type string;
+      }
+    }
+    output {
+      leaf result {
+        type enumeration {
+          enum ok;
+          enum ng;
+        }
+      }
+      container detail {
+        when "../result='ok'";
+        leaf errno {
+          type enumeration {
+            enum no-such-customer;
+            enum unexpected-error;
+          }
+        }
+      }
+    }
+  }
+}
