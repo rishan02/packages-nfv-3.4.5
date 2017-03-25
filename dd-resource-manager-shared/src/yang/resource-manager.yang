@@ -1,0 +1,203 @@
+module resource-manager {
+    namespace "http://com.cisco/singtel/resource-manager";
+    prefix singtel-rm;
+
+    import tailf-ncs {
+        prefix ncs;
+    }
+
+    import tailf-common {
+        prefix tailf;
+    }
+
+    import ietf-inet-types {
+        prefix inet;
+    }
+
+    organization "Cisco";
+
+    contact
+    "Joe L. User
+
+    ACME, Inc.
+    42 Anywhere Drive
+    Nowhere, CA 95134
+    USA
+
+    Phone: +1 800 555 0100
+    EMail: joe@acme.example.com";
+
+
+    revision "2016-12-12" {
+        description  "First version";
+    }
+
+    grouping id-pool-g {
+        list ranges {
+            key "min max";
+            leaf min {
+                type uint16;
+            }
+            leaf max {
+                type uint16;
+            }
+        }
+
+        leaf-list all-allocated {
+            type uint16;
+        }
+
+        leaf last-allocated {
+            type uint16;
+        }
+
+        list allocated-by-consumer {
+            key consumer;
+            leaf consumer {
+                type string;
+            }
+            leaf allocated {
+                type uint16;
+            }
+        }
+    }
+
+    grouping ip-pool-g {
+        list ranges {
+            key "min max";
+            leaf min {
+                type inet:ipv4-address;
+            }
+            leaf max {
+                type inet:ipv4-address;
+            }
+        }
+
+        leaf-list all-allocated {
+            type inet:ipv4-address;
+        }
+
+        leaf last-allocated {
+            type inet:ipv4-address;
+        }
+
+        list allocated-by-consumer {
+            key consumer;
+            leaf consumer {
+                type string;
+            }
+            leaf allocated {
+                type inet:ipv4-address;
+            }
+        }
+    }
+
+    grouping object-pool-g {
+        list objects {
+            key object;
+            uses ncs:service-data;
+            ncs:servicepoint vdom-apply-profile;
+            leaf object {
+                type string;
+            }
+            leaf capacity {
+                type uint32;
+            }
+            leaf-list consumers {
+                type string;
+            }
+            leaf profile {
+                type string;
+            }
+            container bandwidth {
+                leaf low {
+                    type uint32;
+                    units kbps;
+                }
+                leaf high {
+                    type uint32;
+                    units kbps;
+                }
+            }
+        }
+
+        list allocated-by-consumer {
+            key consumer;
+            leaf consumer {
+                type string;
+            }
+            leaf allocated {
+                type string;
+            }
+        }
+    }
+
+    container resource-manager {
+        tailf:hidden ddrm;
+
+        container pools {
+            container host-id-pool {
+                leaf-list all-allocated {
+                    type uint16;
+                }
+                leaf last-allocated {
+                    type uint16;
+                }
+            }
+            list id-pool {
+                key name;
+                leaf name {
+                    type string;
+                }
+                uses id-pool-g;
+            }
+            list ip-pool {
+                key name;
+                leaf name {
+                    type string;
+                }
+                uses ip-pool-g;
+            }
+            list object-pool {
+                key name;
+                leaf name {
+                    type string;
+                }
+                uses object-pool-g;
+            }
+        }
+
+        container vnf-status {
+            list host-information {
+                tailf:hidden ddrm;
+                key hostname;
+                leaf hostname {
+                    type string;
+                }
+                leaf id {
+                    type uint16;
+                }
+                leaf pod-name {
+                    type string;
+                }
+                leaf site-code {
+                    type string;
+                }
+                leaf esc-device {
+                    type string;
+                }
+                leaf status {
+                    type enumeration {
+                        enum "in-progress";
+                        enum "ready";
+                        enum "recovering";
+                        enum "deleting";
+                        enum "error-deployed";
+                        enum "error-recovering";
+                    }
+                    default "in-progress";
+                }
+            }
+        }
+    }
+}
