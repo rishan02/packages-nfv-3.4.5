@@ -1,0 +1,60 @@
+<!--
+SERVICE_NAME
+ACCESS_SERVICE_TYPE
+BRN
+BAN
+SID
+LAN_IP_CIDR
+WAN_IP_CIDR
+ROUTING_PROTOCOL
+AS_NUMBER (when ROUTING_PROTOCOL = bgp)
+REMOTE_AS_NUMBER (when ROUTING_PROTOCOL = bgp)
+NEIGHBOR_PASSWD (when ROUTING_PROTOCOL = bgp)
+GATEWAY_IP
+SITE_CODE
+POD
+DCI
+DCI_LINK_END_POINT
+INGRESS_MAC_ADDRESS
+EGRESS_MAC_ADDRESS
+NFV_VAS_REFERENCE
+NFV_VAS_SCHEME
+BRAND
+NFV_SETUP
+NFV_ACCESS_SETUP
+CIRCUIT_REFERENCE
+SPEED
+PRODUCT_CODE
+-->
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+  <megapop xmlns="http://com/singtel/nfv">
+    <l2nid-mpls-csr tags="merge">
+      <service-name>{$SERVICE_NAME}</service-name>
+      <access-service-type>{$ACCESS_SERVICE_TYPE}</access-service-type>
+      <brn>{$BRN}</brn>
+      <ban>{$BAN}</ban>
+      <sid>{$SID}</sid>
+      <lan-ip>{$LAN_IP_CIDR}</lan-ip>
+      <wan-ip>{$WAN_IP_CIDR}</wan-ip>
+      <routing-protocol>{$ROUTING_PROTOCOL}</routing-protocol>
+      <as-number when="{$ROUTING_PROTOCOL='bgp'">{$AS_NUMBER}</as-number>
+      <remote-as-number when="{$ROUTING_PROTOCOL='bgp'">{$REMOTE_AS_NUMBER}</remote-as-number>
+      <neighbor-passwd when="{$ROUTING_PROTOCOL='bgp'">{$NEIGHBOR_PASSWD}</neighbor-passwd>
+      <gateway>{$GATEWAY_IP}</gateway>
+      <site-code>{$SITE_CODE}</site-code>
+      <pod>{$POD}</pod>
+      <dci>{$DCI}</dci>
+      <dci-link-end-point>{$DCI_LINK_END_POINT}</dci-link-end-point>
+      <ingress-mac-address>{$INGRESS_MAC_ADDRESS}</ingress-mac-address>
+      <egress-mac-address>{$EGRESS_MAC_ADDRESS}</egress-mac-address>
+      <nfv-vas-reference>{$NFV_VAS_REFERENCE}</nfv-vas-reference>
+      <nfv-vas-scheme>{$NFV_VAS_SCHEME}</nfv-vas-scheme>
+      <brand>{$BRAND}</brand>
+      <nfv-setup>{$NFV_SETUP}</nfv-setup>
+      <nfv-access-setup>{$NFV_ACCESS_SETUP}</nfv-access-setup>
+      <circuit-reference>{$CIRCUIT_REFERENCE}</circuit-reference>
+      <speed>{$SPEED}</speed>
+      <product-code>{$PRODUCT_CODE}</product-code>
+    </l2nid-mpls-csr>
+  </megapop>
+</config-template>

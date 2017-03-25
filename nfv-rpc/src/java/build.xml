@@ -1,0 +1,61 @@
+<project name="package" basedir="." default="all">
+  <property environment="env"/>
+  <property name="build.dir" value="build"/>
+  <property name="classes.dir" value="${build.dir}/classes"/>
+  <property name="src.dir" value="src"/>
+  <property name="rsc.dir" value="src/resources"/>
+  <property name="sharedjar.dir" value="../../shared-jar"/>
+  <property name="resourcesharedjar.dir" value="../../../dd-resource-manager-shared/shared-jar"/>
+  <property name="sitescommonsharedjar.dir" value="../../../sites-common/shared-jar"/>
+  <property name="hostnamesharedjar.dir" value="../../../hostname/shared-jar"/>
+  <property name="privatejar.dir" value="../../private-jar"/>
+  <property name="doc.dir" value="${build.dir}/javadoc"/>
+  <property name="ncs.dir" value="${env.NCS_DIR}/java/jar"/>
+  <property name="extfoss.dir" value="../../../../external/foss"/>
+  <property name="extned.dir" value="../../../../external/ned"/>
+  <property name="ncs.topdir" value="${env.NCS_DIR}"/>
+  <property name="package" value="nfv-rpc"/>
+  <path id="core-libs">
+    <fileset dir="${ncs.dir}">
+      <include name="*.jar"/>
+    </fileset>
+    <fileset dir="${sharedjar.dir}">
+      <include name="*.jar"/>
+    </fileset>
+    <fileset dir="${extned.dir}">
+      <include name="**/shared-jar/*.jar"/>
+    </fileset>
+    <fileset dir="${resourcesharedjar.dir}">
+      <include name="*.jar"/>
+    </fileset>
+    <fileset dir="${sitescommonsharedjar.dir}">
+      <include name="*.jar"/>
+    </fileset>
+    <fileset dir="${hostnamesharedjar.dir}">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+  <target name="all" depends="package"/>
+  <target name="package" depends="compile">
+    <copy todir="${classes.dir}">
+      <fileset dir="${src.dir}">
+        <include name="**/*.properties"/>
+      </fileset>
+    </copy>
+    <jar destfile="${sharedjar.dir}/${package}-ns.jar" basedir="${classes.dir}" includes="**/namespaces/*.class,**/base/*.class"/>
+    <jar destfile="${sharedjar.dir}/${package}.jar" basedir="${classes.dir}" excludes="**/namespaces/*.class" includes="**/*.*"/>
+  </target>
+  <target name="clean">
+    <delete dir="${build.dir}"/>
+    <delete file="${sharedjar.dir}/${package}-ns.jar"/>
+    <delete file="${sharedjar.dir}/${package}.jar"/>
+  </target>
+  <target name="compile">
+    <mkdir dir="${classes.dir}"/>
+    <javac srcdir="${src.dir}" destdir="${classes.dir}" debug="on" includeantruntime="false" debuglevel="lines,vars,source">
+      <compilerarg value="-Xlint:unchecked"/>
+      <compilerarg value="-Xlint:deprecation"/>
+      <classpath refid="core-libs"/>
+    </javac>
+  </target>
+</project>

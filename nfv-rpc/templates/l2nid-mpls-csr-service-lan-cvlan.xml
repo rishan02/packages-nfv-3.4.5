@@ -1,0 +1,16 @@
+<!--
+SERVICE_NAME
+ID
+IP_CIDR
+-->
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+  <megapop xmlns="http://com/singtel/nfv">
+    <l2nid-mpls-csr tags="merge">
+      <service-name>{$SERVICE_NAME}</service-name>
+      <lan-cvlans>
+        <lan-cvlan-id>{$ID}</lan-cvlan-id>
+        <lan-cvlan-ip>{$IP_CIDR}</lan-cvlan-ip>
+      </lan-cvlans>
+    </l2nid-mpls-csr>
+  </megapop>
+</config-template>

@@ -1,0 +1,28 @@
+<ncs-package xmlns="http://tail-f.com/ns/ncs-packages">
+  <name>nfv-rpc</name>
+  <package-version>0.3.1</package-version>
+  <description>nfv rpc</description>
+  <ncs-min-version>4.2</ncs-min-version>
+  <required-package>
+    <name>dd-resource-manager-shared</name>
+  </required-package>
+  <required-package>
+    <name>sites-common</name>
+  </required-package>
+  <required-package>
+    <name>hostname</name>
+  </required-package>
+
+  <component>
+    <name>CreateMplsCsr</name>
+    <callback>
+      <java-class-name>com.singtel.nfv.action.CreateVcpeAction</java-class-name>
+    </callback>
+  </component>
+  <component>
+    <name>DeleteMplsCsr</name>
+    <callback>
+      <java-class-name>com.singtel.nfv.action.DeleteVcpeAction</java-class-name>
+    </callback>
+  </component>
+</ncs-package>
