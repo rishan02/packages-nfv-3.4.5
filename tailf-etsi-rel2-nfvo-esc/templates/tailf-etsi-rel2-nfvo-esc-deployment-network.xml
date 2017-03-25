@@ -1,0 +1,39 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device tags="nocreate">
+      <name>{/esc}</name>
+      <config>
+        <esc_datamodel xmlns="http://www.cisco.com/esc/esc">
+          <tenants>
+            <tenant>
+              <name>{/tenant}</name>
+              <deployments>
+                <deployment>
+                  <name>{/deployment-name}</name>
+                  <networks>
+                    <network tags="merge">
+                      <name>{$NETWORK}</name>
+                      <shared>false</shared>
+                      <provider_network_type when="{$PROVIDER_NETWORK_TYPE!=''}">{$PROVIDER_NETWORK_TYPE}</provider_network_type>
+                      <provider_physical_network when="{$PROVIDER_PHYSICAL_NETWORK!=''}">{$PROVIDER_PHYSICAL_NETWORK}</provider_physical_network>
+                      <provider_segmentation_id when="{$PROVIDER_SEGMENTATION_ID!=''}">{$PROVIDER_SEGMENTATION_ID}</provider_segmentation_id>
+                      <subnet>
+                        <name>{$SUBNET_NAME}</name>
+                        <ipversion>{$IPV}</ipversion>
+                        <dhcp>{$DHCP}</dhcp>
+                        <address>{$SUBNET_ADDR}</address>
+                        <netmask>{$SUBNET_MASK}</netmask>
+                        <gateway when="{$SUBNET_GW!=''}">{$SUBNET_GW}</gateway>
+                        <no_gateway when="{$SUBNET_NO_GW!=''}">{$SUBNET_NO_GW}</no_gateway>
+                      </subnet>
+                    </network>
+                  </networks>
+                </deployment>
+              </deployments>
+            </tenant>
+          </tenants>
+        </esc_datamodel>
+      </config>
+    </device>
+  </devices>
+</config-template>

@@ -1,0 +1,33 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device tags="nocreate">
+      <name>{/esc}</name>
+      <config>
+        <esc_datamodel xmlns="http://www.cisco.com/esc/esc">
+          <tenants>
+            <tenant>
+              <name>{/tenant}</name>
+              <deployments>
+                <deployment>
+                  <name>{/deployment-name}</name>
+                  <vm_group>
+                    <name>{$VM_GROUP_NAME}</name>
+                    <config_data>
+                      <configuration>
+                        <dst>{$DEST}</dst>
+                        <variable tags="replace">
+                          <name>{$VAR_NAME}</name>
+                          <val>{$VAR_VALUE}</val>
+                        </variable>
+                      </configuration>
+                    </config_data>
+                  </vm_group>
+                </deployment>
+              </deployments>
+            </tenant>
+          </tenants>
+        </esc_datamodel>
+      </config>
+    </device>
+  </devices>
+</config-template>

@@ -1,0 +1,30 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device tags="nocreate">
+      <name>{/esc-device/name}</name>
+      <config tags="merge">
+        <esc_datamodel xmlns="http://www.cisco.com/esc/esc">
+          <images>
+            <image>
+              <name>{/name}</name>
+              <src>{$SRC}</src>
+              <disk_format>{$DISK_FORMAT}</disk_format>
+              <container_format>{$CONTAINER_FORMAT}</container_format>
+              <serial_console when="{$serial_console!=''}">{$serial_console}</serial_console>
+              <e1000_net when="{$e1000_net!=''}">{$e1000_net}</e1000_net>
+              <virtio_net when="{$virtio_net!=''}">{$virtio_net}</virtio_net>
+              <disk_bus when="{$disk_bus!=''}">{$disk_bus}</disk_bus>
+              <properties>
+                  <property>
+                      <name>{/properties/property/name}</name>
+                      <type>{type}</type>
+                      <value>{value}</value>
+                  </property>
+              </properties>
+            </image>
+          </images>
+        </esc_datamodel>
+      </config>
+    </device>
+  </devices>
+</config-template>

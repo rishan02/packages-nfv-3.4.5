@@ -1,0 +1,45 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device tags="nocreate">
+      <name>{/esc}</name>
+      <config>
+        <esc_datamodel xmlns="http://www.cisco.com/esc/esc">
+          <tenants>
+            <tenant>
+              <name>{/tenant}</name>
+              <deployments>
+                <deployment>
+                  <name>{/deployment-name}</name>
+                  <vm_group>
+                    <name>{$VM_GROUP_NAME}</name>
+                    <interfaces>
+                      <interface tags="merge">
+                        <nicid>{$NICID}</nicid>
+                        <network>{$NETWORK}</network>
+                        <type when="{$TYPE!=''}">{$TYPE}</type>
+                        <ip_address when="{$IP_ADDRESS!=''}">{$IP_ADDRESS}</ip_address>
+                        <ip_address when="{$IP_START!='' and $IP_ADDRESS=''}">{$IP_START}</ip_address>
+                        <mac_address when="{$MAC_ADDR!=''}">{$MAC_ADDR}</mac_address>
+                      </interface>
+                    </interfaces>
+                    <scaling when="{$IP_START!=''}">
+                      <static_ip_address_pool tags="merge">
+                        <network>{$NETWORK}</network>
+                        <gateway when="{$IP_GATEWAY!=''}">{$IP_GATEWAY}</gateway>
+                        <netmask when="{$IP_NETMASK!=''}">{$IP_NETMASK}</netmask>
+                        <ip_address_range>
+                          <start>{$IP_START}</start>
+                          <end>{$IP_END}</end>
+                        </ip_address_range>
+                      </static_ip_address_pool>
+                    </scaling>
+                  </vm_group>
+                </deployment>
+              </deployments>
+            </tenant>
+          </tenants>
+        </esc_datamodel>
+      </config>
+    </device>
+  </devices>
+</config-template>

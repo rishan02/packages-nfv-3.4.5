@@ -1,0 +1,66 @@
+module tailf-etsi-rel2-nfvo-esc-staged-delete {
+  namespace "http://tail-f.com/pkg/tailf-etsi-rel2-nfvo-esc-staged-delete";
+  prefix nfvo-rel2-esc-sd;
+
+  import tailf-ncs { prefix ncs; }
+  import tailf-etsi-rel2-nfvo { prefix nfvo-rel2; }
+
+  organization "Cisco Systems";
+
+  contact "<support@tail-f.com>";
+
+  description
+    "This model is used by the NFVE ESC to call out
+    to a custom handler for e.g. revoking a license of a device
+    that the VNFR want to remove.
+
+    To initiate the delete of a license, the VNFR add
+    the device name to the 'delete' container.
+
+    The custom handler must subscribe to changes in the 'delete'
+    container and act accordingly when new devices are added.
+    When the license has been deleted, the 'device' is removed
+    from the 'delete' container and inserted in the 'deleted' container.
+
+    The VNFR subscribes to changes in the 'deleted'
+    container and will, when triggered, pick up the device in order
+    to remove it; and will delete the device from the 'deleted' container.";
+
+  revision 2017-01-20 {
+    description "License handling";
+  }
+
+  grouping sd-grp {
+    leaf tenant {
+      description "Name of the tenant to be removed";
+      type string;
+    }
+    leaf deployment-name {
+      description "Name of the deployment name to be removed";
+      type string;
+    }
+    leaf esc {
+      description "Name of the esc where the deployment is to be removed";
+      type string;
+    }
+    leaf username {
+      description "Username of the ESC service";
+      mandatory true;
+      type string;
+    }
+  }
+
+  augment /nfvo-rel2:nfvo {
+    container staged-delete-esc {
+      list delete {
+        key "tenant deployment-name esc";
+        uses sd-grp;
+      }
+
+      list deleted {
+        key "tenant deployment-name esc";
+        uses sd-grp;
+      }
+    }
+  }
+}

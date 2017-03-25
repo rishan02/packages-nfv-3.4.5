@@ -1,0 +1,53 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device tags="nocreate">
+      <name>{/esc}</name>
+      <config>
+        <esc_datamodel xmlns="http://www.cisco.com/esc/esc">
+          <tenants>
+            <tenant>
+              <name>{/tenant}</name>
+              <deployments>
+               <deployment tags="merge">
+                  <name>{/deployment-name}</name>
+                  <vm_group>
+                    <name>{$VM_GROUP_NAME}</name>
+                    <image>{/vnf-info[name=$VNF_INFO_NAME]/vdu[id=$VDU]/image-name}</image>
+                    <flavor>{/vnf-info[name=$VNF_INFO_NAME]/vdu[id=$VDU]/flavor-name}</flavor>
+                    <bootup_time>{/vnf-info[name=$VNF_INFO_NAME]/vdu[id=$VDU]/bootup-time}</bootup_time>
+                    <reboot_time>{/vnf-info[name=$VNF_INFO_NAME]/vdu[id=$VDU]/reboot-time}</reboot_time>
+                    <recovery_wait_time>{/vnf-info[name=$VNF_INFO_NAME]/vdu[id=$VDU]/recovery-wait-time}</recovery_wait_time>
+                    <scaling>
+                      <min_active>{$MIN_ACTIVE}</min_active>
+                      <max_active>{$MAX_ACTIVE}</max_active>
+                      <elastic>true</elastic>
+                    </scaling>
+                    <extensions>
+                      <extension>
+                        <name>NSO</name>
+                        <properties>
+                          <property>
+                            <name>VNF-INFO-NAME</name>
+                            <value>{$VNF_INFO_NAME}</value>
+                          </property>
+                          <property>
+                            <name>VDU</name>
+                            <value>{$VDU}</value>
+                          </property>
+                          <property when="{/vnf-info[name=$VNF_INFO_NAME]/vdu[id=$VDU]/device-profile!=''}">
+                            <name>DEVICE-PROFILE</name>
+                            <value>{/vnf-info[name=$VNF_INFO_NAME]/vdu[id=$VDU]/device-profile}</value>
+                          </property>
+                        </properties>
+                      </extension>
+                    </extensions>
+                  </vm_group>
+                </deployment>
+              </deployments>
+            </tenant>
+          </tenants>
+        </esc_datamodel>
+      </config>
+    </device>
+  </devices>
+</config-template>

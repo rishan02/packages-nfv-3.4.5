@@ -1,0 +1,103 @@
+<config xmlns="http://tail-f.com/ns/config/1.0">
+  <nfvo xmlns="http://tail-f.com/pkg/tailf-etsi-rel2-nfvo">
+    <tailf-esc-internal xmlns="http://tail-f.com/pkg/tailf-etsi-rel2-nfvo-esc">
+      <vnf-deployment tags="replace">
+        <tenant>{tenant}</tenant>
+        <deployment-name>{deployment-name}</deployment-name>
+        <esc>{esc}</esc>
+        <username>{username}</username>
+        <nfvo-behaviors>
+          <device-recovery-sync-direction>{nfvo-behaviors/device-recovery-sync-direction</device-recovery-sync-direction>
+          <staged-delete when="{nfvo-behaviors/staged-delete}"/>
+        </nfvo-behaviors>
+        <vnf-info>
+          <name>{vnf-info/name}</name>
+          <vnfd>{vnfd}</vnfd>
+          <vnfd-flavor>{vnfd-flavor}</vnfd-flavor>
+          <instantiation-level>{instantiation-level}</instantiation-level>
+          <vdu>
+            <id>{vdu/id}</id>
+            <managed when="{managed}"/>
+            <image-name>{image-name}</image-name>
+            <flavor-name>{flavor-name}</flavor-name>
+            <bootup-time>{bootup-time}</bootup-time>
+            <reboot-time>{reboot-time}</reboot-time>
+            <recovery-wait-time>{recovery-wait-time}</recovery-wait-time>
+            <day0>
+              <destination>{day0/destination}</destination>
+              <url when="{url}">{url}</url>
+              <data when="{data}">{data}</data>
+              <variable>
+                <name>{variable/name}</name>
+                <value>{value}</value>
+              </variable>
+            </day0>
+            <host-key-verification-type>{host-key-verification-type}</host-key-verification-type>
+            <device-profile>{device-profile}</device-profile>
+            <authgroup>{authgroup}</authgroup>
+            <internal-connection-point>
+              <id>{internal-connection-point/id}</id>
+              <connection-point-address when="{connection-point-address}">
+                <address>{connection-point-address/address}</address>
+                <mac-address>{connection-point-address/mac-address}</mac-address>
+                <gateway>{connection-point-address/gateway}</gateway>
+                <netmask>{connection-point-address/netmask}</netmask>
+                <start>{connection-point-address/start}</start>
+                <end>{connection-point-address/end}</end>
+              </connection-point-address>
+              <allowed-address-pair>
+                <address>{allowed-address-pair/address}</address>
+                <netmask>{netmask}</netmask>
+              </allowed-address-pair>
+            </internal-connection-point>
+            <esc-device-template>
+              <name>{esc-device-template/name}</name>
+              <variable>
+                <name>{variable/name}</name>
+                <value>{value}</value>
+              </variable>
+            </esc-device-template>
+            <vm-alive-actions>
+              <TRUE>{vm-alive-actions/TRUE}</TRUE>
+              <FALSE>{vm-alive-actions/FALSE}</FALSE>
+              <ALWAYS>{vm-alive-actions/ALWAYS}</ALWAYS>
+            </vm-alive-actions>
+          </vdu>
+          <virtual-link>
+            <id>{virtual-link/id}</id>
+            <dhcp when="{dhcp}"/>
+            <subnet>
+              <name>{subnet/name}</name>
+              <network>{subnet/network}</network>
+              <gateway>{subnet/gateway}</gateway>
+              <no-gateway when="{subnet/no-gateway}"/>
+            </subnet>
+            <vlan when="{vlan}">
+              <physical-network-name>{vlan/physical-network-name}</physical-network-name>
+              <id>{vlan/id}</id>
+            </vlan>
+          </virtual-link>
+          <vnfd-connection-point>
+            <id>{vnfd-connection-point/id}</id>
+            <network-name>{network-name}</network-name>
+          </vnfd-connection-point>
+        </vnf-info>
+        <additional-network>
+          <network-name>{additional-network/network-name}</network-name>
+          <dhcp when="{dhcp}"/>
+          <subnet>
+            <name>{subnet/name}</name>
+            <network>{subnet/network}</network>
+            <gateway>{subnet/gateway}</gateway>
+            <no-gateway when="{subnet/no-gateway}"/>
+          </subnet>
+          <vlan when="{vlan}">
+            <physical-network-name>{vlan/physical-network-name}</physical-network-name>
+            <id>{vlan/id}</id>
+          </vlan>
+        </additional-network>
+        <state>{state}</state>
+      </vnf-deployment>
+    </tailf-esc-internal>
+  </nfvo>
+</config>

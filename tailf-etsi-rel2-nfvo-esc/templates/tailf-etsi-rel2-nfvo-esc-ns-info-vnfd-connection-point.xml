@@ -1,0 +1,22 @@
+<config xmlns="http://tail-f.com/ns/config/1.0">
+  <nfvo xmlns="http://tail-f.com/pkg/tailf-etsi-rel2-nfvo">
+    <vnf-info>
+      <esc xmlns="http://tail-f.com/pkg/tailf-etsi-rel2-nfvo-esc">
+        <vnf-deployment tags="merge">
+          <tenant>{/tenant}</tenant>
+          <deployment-name>{/deployment-name}</deployment-name>
+          <esc>{/esc}</esc>
+          <vnf-info>
+            <name>{$VNF_PROFILE_NAME}</name>
+            <vnfd>{$VNF_NAME}</vnfd>
+            <vnfd-connection-point>
+              <id>{$VNF_CP}</id>
+              <network-name>{$NETWORK_NAME}</network-name>
+            </vnfd-connection-point>
+          </vnf-info>
+        </vnf-deployment>
+      </esc>
+    </vnf-info>
+  </nfvo>
+</config>
+

@@ -1,0 +1,1077 @@
+module tailf-etsi-rel2-nfvo-esc {
+  namespace "http://tail-f.com/pkg/tailf-etsi-rel2-nfvo-esc";
+  prefix nfvo-rel2-esc;
+
+  import ietf-inet-types { prefix inet; }
+  import ietf-yang-types { prefix yang; }
+  import tailf-common { prefix tailf; }
+  import tailf-ncs { prefix ncs; }
+  import tailf-etsi-rel2-nfvo { prefix nfvo-rel2; }
+  import esc { prefix esc; }
+
+  organization "Cisco Systems";
+
+  contact "<support@tail-f.com>";
+
+  description
+    "The models for the ESC implementation of the VNF record types.";
+
+
+  revision 2017-01-20 {
+    description
+      "Initial revision.";
+  }
+
+  identity vdu {
+    description
+      "Plan component used by the VNFInfo service";
+    base ncs:plan-component-type;
+  }
+
+  identity deployed {
+    description
+      "Plan state used by the VNFInfo service";
+    base ncs:plan-state;
+  }
+
+  grouping network-parameters {
+    description
+      "Used to specify networking parameters for virtual links";
+    leaf dhcp {
+      type empty;
+    }
+
+    container subnet {
+      leaf name {
+        type string;
+        tailf:info "Optional name for the subnet";
+      }
+      leaf network {
+        mandatory true;
+        type inet:ip-prefix;
+      }
+
+      choice gateway-choice {
+        description
+          "When creating a network, the gateway setting has three options:
+           1. The VIM assigns gateway, in this case don't set this choice
+           2. The VIM uses an existing gateway, set gateway
+           3. No gateway should be used, set no-gateway";
+        leaf gateway {
+          type inet:ip-address;
+        }
+        leaf no-gateway {
+          type empty;
+        }
+      }
+    }
+
+    choice provider-network {
+      container vlan {
+        description
+          "This will create the network with provider network
+           type VLAN";
+
+        leaf physical-network-name {
+          type string;
+          mandatory true;
+        }
+
+        leaf id {
+          type uint16 {
+            range "1..4094";
+          }
+        }
+      }
+    }
+  }
+
+  grouping vnf-info {
+    list vdu {
+      key id;
+      leaf id {
+        type leafref {
+          path "deref(../../nfvo-rel2-esc:vnfd)/../nfvo-rel2:vdu/nfvo-rel2:id";
+        }
+      }
+      leaf managed {
+        description "If set, NSO will try to add all VDU instances to the device tree";
+        type empty;
+      }
+      leaf bootup-time {
+        tailf:info "Maximum bootup time in seconds";
+        type uint32;
+        mandatory true;
+      }
+
+      leaf reboot-time {
+        tailf:info "Maximum reboot time in seconds";
+        description
+          "Time in seconds that this VM takes to perform a normal reboot.
+          if not specified, it will use bootup-time value.";
+        type uint32;
+      }
+
+      leaf recovery-wait-time {
+        tailf:info "Recovery wait time in seconds";
+        type uint32;
+        mandatory true;
+      }
+      leaf image-name {
+        description
+          "An image available in the VIM";
+        type string;
+        mandatory true;
+      }
+
+      leaf flavor-name {
+        description
+          "A flavor available in the VIM";
+        type string;
+        mandatory true;
+      }
+
+      container device-name-pool {
+        description
+          "A pool of device names that will be used if the device is
+          inserted into the ncs device tree";
+        leaf-list device-name {
+          type string;
+        }
+      }
+
+      list day0 {
+        key destination;
+        description
+          "Data for the VNF's day0.";
+
+        leaf destination {
+          description
+            "Destination filename for this day0 file.";
+          type leafref {
+            tailf:no-leafref-check;
+            path '/nfvo-rel2:nfvo/nfvo-rel2:vnfd[nfvo-rel2:id=current()/../../../nfvo-rel2-esc:vnfd]/nfvo-rel2:vdu[nfvo-rel2:id=current()/../../nfvo-rel2-esc:id]/nfvo-rel2-esc:day0/nfvo-rel2-esc:destination';
+          }
+        }
+
+        choice source {
+          mandatory true;
+          description
+            "Specifies where ESC can get the day0 content";
+          leaf url {
+            type inet:uri;
+          }
+
+          leaf data {
+            type string;
+          }
+        }
+
+        list variable {
+          description
+            "Key/value store for the day0 data. ESC will substitute
+            <$name> with <value> in the day0 file. ";
+          key name;
+
+          leaf name {
+            type string;
+          }
+
+          leaf-list value {
+            type string;
+          }
+        }
+      }
+
+      leaf device-profile {
+        description
+          "Device profile set on the created device";
+        type leafref {
+          path '/ncs:devices/ncs:profiles/ncs:profile/ncs:name';
+        }
+      }
+
+      leaf authgroup {
+        description
+          "Points out the authentication group used if adding this VNF to the device
+          tree";
+        type leafref {
+          path '/ncs:devices/ncs:authgroups/ncs:group/ncs:name';
+        }
+      }
+
+      leaf host-key-verification-type {
+        description
+          "By default unknown host keys for managed devices are rejected.
+          If another behavior is desirable change that here";
+        type enumeration {
+          enum none {
+            tailf:info "Accept any host key";
+            description
+              "With this setting, no SSH host key verification is done - the
+              key provided by the device or cluster node may be either unknown
+              or different from a 'known' key for the same key algorithm.";
+          }
+          enum reject-mismatch {
+            tailf:info "Reject host keys that do not match the stored key";
+            description
+              "With this setting, the SSH host key provided by the device or
+              cluster node may be unknown, but it must not be different from
+              a 'known' key for the same key algorithm.";
+          }
+          enum reject-unknown {
+            tailf:info "Reject unknown host keys";
+            description
+              "With this setting, the SSH host key provided by the device or
+              cluster node must already be known.";
+          }
+        }
+        default reject-unknown;
+      }
+
+      list internal-connection-point {
+        key id;
+
+        leaf id {
+          type leafref {
+            path "/nfvo-rel2:nfvo/nfvo-rel2:vnfd[nfvo-rel2:id=current()/../../../nfvo-rel2-esc:vnfd]/nfvo-rel2:vdu[nfvo-rel2:id=current()/../../nfvo-rel2-esc:id]/nfvo-rel2:internal-connection-point-descriptor/nfvo-rel2:id";
+          }
+        }
+
+        container connection-point-address {
+          presence "Allows setting of connection point address information.";
+          leaf address {
+            description "If this address is set, it will be assigned to the interface,
+                        otherwise the first address in the range will be selected.";
+            type inet:ip-address;
+          }
+
+          leaf mac-address {
+            description "Optional static MAC address for this interface";
+            type string {
+              pattern '[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}';
+            }
+          }
+
+          leaf netmask {
+            description "Optional netmask";
+            type inet:ip-address;
+          }
+
+          leaf gateway {
+            description "Optional gateway";
+            type inet:ip-address;
+          }
+
+          leaf start {
+            description "Range start";
+            mandatory true;
+            type inet:ip-address;
+          }
+
+          leaf end {
+            description "Range end";
+            mandatory true;
+            type inet:ip-address;
+          }
+        }
+        list allowed-address-pair {
+          key "address";
+          description "Allowed address on this interface";
+          leaf address {
+            description "Ip address or Subnet address for this network.";
+            type inet:ip-address;
+          }
+          leaf netmask {
+            description "Netmask for the subnet";
+            type inet:ip-address;
+            mandatory true;
+          }
+        }
+      }
+
+      list esc-device-template {
+        ordered-by user;
+        key name;
+        description
+          "After all settings has been made to ESC, but before commit, these
+          templates are applied to the ESC devices. They are applied in the
+          user specified order.
+
+          This allows the user to make any change to the config written to the
+          ESC.";
+
+        leaf name {
+          type leafref {
+            path "/ncs:devices/ncs:template/ncs:name";
+          }
+        }
+        list variable {
+          description
+            "Key/value store for the device template. The service will substitute
+            <$name> with <value> in the device template.";
+          key name;
+
+          leaf name {
+            type string;
+          }
+
+          leaf value {
+            type string;
+          }
+        }
+      }
+      container vm-alive-actions {
+        description
+          "Overrides for the VM_ALIVE event.";
+        leaf TRUE {
+          type string;
+          default "servicebooted.sh";
+        }
+        leaf FALSE {
+          type string;
+          default "recover autohealing";
+        }
+        leaf ALWAYS {
+          type string;
+          default "log";
+        }
+      }
+    }
+
+    list virtual-link {
+      key id;
+      description
+        "Possible to set the network parameters for the VNFD's virtual links";
+
+      leaf id {
+        type leafref {
+          path "deref(../../nfvo-rel2-esc:vnfd)/../nfvo-rel2:virtual-link-descriptor/nfvo-rel2:id";
+        }
+      }
+
+      uses network-parameters;
+    }
+
+  }
+
+  grouping vnf-deployment {
+    leaf tenant {
+      type leafref {
+        path "/ncs:devices/ncs:device/ncs:config/esc:esc_datamodel/esc:tenants/esc:tenant/esc:name";
+      }
+    }
+
+    leaf deployment-name {
+      description "A per tenant unique deployment name";
+      type string;
+    }
+
+    leaf esc {
+      type leafref {
+        path "/ncs:devices/ncs:device/ncs:name";
+      }
+    }
+
+    leaf username {
+      description
+        "Authenticated user for invoking the service.
+         The system will use this user in all interactions with CDB
+         to honor AAA rules";
+      tailf:info "Authenticated user for invoking the service.";
+      type string;
+      mandatory true;
+    }
+
+    container nfvo-behaviors {
+      description
+        "This container contains behavior settings for how tailf-etsi-rel2-nfvo should
+         behave under specific situations";
+      leaf device-recovery-sync-direction {
+        description
+          "Controls the device configuration synchronization direction
+           when a device is alive again after a successful recovery
+           has occurred";
+        type enumeration {
+          enum "to";
+          enum "from";
+          enum "none";
+        }
+        default "from";
+      }
+      leaf staged-delete {
+        description
+          "If set; staged delete will be used. Please note that this
+         requires a staged delete package to manage this, see documentation
+         for details";
+        tailf:info "Enable staged delete for this deployment";
+        type empty;
+      }
+    }
+
+    list vnf-info {
+      key name;
+
+      leaf name {
+        type string;
+      }
+
+      leaf vnfd {
+        mandatory true;
+        type leafref {
+          path "/nfvo-rel2:nfvo/nfvo-rel2:vnfd/nfvo-rel2:id";
+        }
+      }
+
+      leaf vnfd-flavor {
+        mandatory true;
+        type leafref {
+          path "deref(../nfvo-rel2-esc:vnfd)/../nfvo-rel2:deployment-flavor/nfvo-rel2:id";
+        }
+      }
+
+      leaf instantiation-level {
+        mandatory true;
+        type leafref {
+          path "deref(../nfvo-rel2-esc:vnfd-flavor)/../nfvo-rel2:instantiation-level/nfvo-rel2:id";
+        }
+      }
+      uses vnf-info;
+      list vnfd-connection-point {
+        key id;
+        description "Connects the VNFD's connection points to networks";
+
+        leaf id {
+          type leafref {
+            path "deref(../../nfvo-rel2-esc:vnfd)/../nfvo-rel2:external-connection-point-descriptor/nfvo-rel2:id";
+          }
+        }
+
+        leaf network-name {
+          mandatory true;
+          type string;
+        }
+      }
+    }
+    list additional-network {
+      description
+        "Lists the additional networks the VNF should create as part of the deployment.";
+      key network-name;
+      leaf network-name {
+        type string;
+      }
+      uses network-parameters;
+    }
+
+    leaf state {
+      description
+        "If state is not-instantiated, no data is written to ESC";
+      type enumeration {
+        enum instantiated;
+        enum not-instantiated;
+      }
+      default "instantiated";
+    }
+  }
+
+  augment /nfvo-rel2:nfvo/nfvo-rel2:vnfd/nfvo-rel2:vdu/nfvo-rel2:internal-connection-point-descriptor {
+    leaf interface-id {
+      type uint8;
+      description
+        "Interface ID. This determines the order
+        in which interfaces are presented to the guest VM";
+    }
+    leaf type {
+        type enumeration {
+          enum virtual;
+          enum passthru;
+          enum direct;
+          enum macvtap;
+        }
+        default virtual;
+    }
+  }
+
+  augment /nfvo-rel2:nfvo/nfvo-rel2:vnfd/nfvo-rel2:vdu/nfvo-rel2:software-image-descriptor {
+    list additional-setting {
+      key "id";
+      description
+        "Can be used to pass additional information about
+        this storage descriptior to the VNFM/VIM";
+      leaf id {
+        type string;
+      }
+      leaf value {
+        type string;
+      }
+    }
+  }
+
+  augment /nfvo-rel2:nfvo/nfvo-rel2:vnfd/nfvo-rel2:vdu {
+    container device-type {
+      presence "If managed by NSO, a NED is needed";
+      description
+        "NED information needed to manage the device.";
+      tailf:info "Management protocol for the device";
+      choice ne-type {
+        mandatory true;
+        case netconf {
+          leaf netconf {
+            tailf:info "Use NETCONF to talk to the device";
+            type empty;
+          }
+        }
+        case generic {
+          container generic {
+            tailf:info "Use a generic NED to talk to the device";
+            presence "use a generic ned to communicate with the device";
+            leaf ned-id {
+              tailf:info "The NED Identity";
+              type string;
+              mandatory true;
+            }
+          }
+        }
+        case cli {
+          container cli {
+            tailf:info "Use CLI to communicate with the device";
+            presence "use CLI to communicate with the device";
+            leaf ned-id {
+              tailf:info "The NED Identity";
+              type string;
+              mandatory true;
+            }
+            leaf protocol {
+              tailf:info "The CLI protocol";
+              type enumeration {
+                enum "telnet";
+                enum "ssh";
+              }
+              default "ssh";
+            }
+          }
+        }
+      }
+      leaf port {
+        type inet:port-number;
+        description
+          "Port for the management interface on the device.  If this leaf is
+          not configured, a default value based on the type of device will
+          be used. For example, a NETCONF device uses port 830, a
+          CLI device over SSH uses port 22, and a SNMP device uses port 161.";
+      }
+    }
+
+    list depends-on {
+      must "nfvo-rel2-esc:vdu != ../nfvo-rel2:id" {
+        error-message "A VDU cannot depend on itself";
+      }
+      key "vdu";
+      description
+        "Used to specify boot order between VDUs";
+      leaf vdu {
+        type leafref {
+          path "../../../nfvo-rel2:vdu/nfvo-rel2:id";
+        }
+      }
+    }
+
+    list day0 {
+      key "destination";
+      description
+        "The author can list the different day0 files here and
+        mark the necessary files as mandatory. If the destination
+        is mandatory, its existense can be checked at instantiation
+        time.";
+      leaf destination {
+        tailf:info "Destination filename";
+        type string;
+      }
+      leaf mandatory {
+        tailf:info "Mandatory day0 file. At instantiation, the user have to provide this file.";
+        type empty;
+      }
+    }
+  }
+
+  augment /nfvo-rel2:nfvo/nfvo-rel2:vnfd/nfvo-rel2:external-connection-point-descriptor {
+    leaf management {
+      tailf:info "Can be set to indicate the management connection point for this VNF";
+      type empty;
+    }
+  }
+
+  augment /nfvo-rel2:nfvo/nfvo-rel2:vnf-info {
+    container esc {
+      list vnf-deployment {
+        uses ncs:plan-data;
+        uses ncs:service-data;
+        ncs:servicepoint tailf-etsi-rel2-nfvo-esc-vnf-info;
+
+        must "deref(nfvo-rel2-esc:esc)/../ncs:config/esc:esc_datamodel/esc:tenants/esc:tenant/esc:name = nfvo-rel2-esc:tenant" {
+          error-message "The tenant must exist on the selected esc device.";
+        }
+
+        key "tenant deployment-name esc";
+        uses vnf-deployment;
+        description
+          "This is the interface where NB services writes VNF. This in it's
+           turn invokes the real VNF service through a subscriber.
+
+           This allows for staged delete.";
+
+        must "count(/nfvo-rel2:nfvo/nfvo-rel2-esc:settings-esc/nfvo-rel2-esc:netconf-subscription/nfvo-rel2-esc:esc-device[name=current()/nfvo-rel2-esc:esc])=count(current()/nfvo-rel2-esc:esc)" {
+          error-message "NETCONF subcriptions has to be setup in /nfvo/settings-esc/netconf-subscription for the ESC devices";
+        }
+      }
+
+      list vnf-deployment-result {
+        description
+          "we'll store the lookup from esc vmid to a
+          index here. this will enable us to generate
+          device names when scaling in/out";
+        config false;
+        tailf:cdb-oper {
+          tailf:persistent true;
+        }
+        key "tenant deployment-name esc";
+        leaf tenant {
+          type string;
+        }
+
+        leaf deployment-name {
+          type string;
+        }
+
+        leaf esc {
+          type leafref {
+            path "/ncs:devices/ncs:device/ncs:name";
+          }
+        }
+
+        container status {
+          choice cstatus {
+            leaf deployed {
+              type empty;
+            }
+            leaf ready {
+              type yang:date-and-time;
+            }
+            leaf error {
+              type string;
+            }
+            leaf recovering {
+              type yang:date-and-time;
+            }
+          }
+        }
+
+        list vdu {
+          key "vnf-info vdu";
+          leaf vnf-info {
+            type string;
+          }
+
+          leaf vdu {
+            type string;
+          }
+
+          list vm-device {
+            key "esc-device vmid";
+            leaf esc-device {
+              type string;
+            }
+
+            leaf vmid {
+              type string;
+            }
+
+            leaf index {
+              type uint16;
+            }
+
+            leaf device-name {
+              type string;
+            }
+
+            leaf hostid {
+              type string;
+            }
+
+            leaf hostname {
+              description "VIM Hostname";
+              type string;
+            }
+
+            leaf device-hostname {
+              description "Device hostname if available";
+              type string;
+            }
+
+            container status {
+              choice cstatus {
+                leaf deployed {
+                  type empty;
+                }
+                leaf ready {
+                  type yang:date-and-time;
+                }
+                leaf error {
+                  type string;
+                }
+                leaf recovering {
+                  type yang:date-and-time;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  augment /nfvo-rel2:nfvo/nfvo-rel2:ns-info {
+    container esc {
+      list ns-info {
+        uses ncs:plan-data;
+        uses ncs:service-data;
+        ncs:servicepoint tailf-etsi-rel2-nfvo-esc-ns-info;
+
+        key "id";
+        leaf id {
+          type string;
+        }
+
+        leaf tenant {
+          mandatory true;
+          type leafref {
+            path "/ncs:devices/ncs:device/ncs:config/esc:esc_datamodel/esc:tenants/esc:tenant/esc:name";
+          }
+        }
+
+        leaf deployment-name {
+          mandatory true;
+          description "A per tenant unique deployment name";
+          type string;
+        }
+
+        leaf esc {
+          mandatory true;
+          type leafref {
+            path "/ncs:devices/ncs:device/ncs:name";
+          }
+        }
+
+        leaf username {
+          mandatory true;
+          type string;
+        }
+
+        leaf name {
+          type string;
+        }
+
+        leaf description {
+          type string;
+        }
+
+        leaf nsd {
+          mandatory true;
+          type leafref {
+            path "/nfvo-rel2:nfvo/nfvo-rel2:nsd/nfvo-rel2:id";
+          }
+        }
+        leaf flavor {
+          mandatory true;
+          type leafref {
+            path "deref(../nfvo-rel2-esc:nsd)/../nfvo-rel2:deployment-flavor/nfvo-rel2:id";
+          }
+        }
+        leaf instantiation-level {
+          mandatory true;
+          type leafref {
+            path "deref(../nfvo-rel2-esc:flavor)/../nfvo-rel2:instantiation-level/nfvo-rel2:id";
+          }
+        }
+        list vnf-info {
+          key "vnf-profile";
+          leaf vnf-profile {
+            type leafref {
+              path "deref(../../nfvo-rel2-esc:flavor)/../nfvo-rel2:vnf-profile/nfvo-rel2:id";
+            }
+          }
+
+          leaf vnfd {
+            type leafref {
+              path "/nfvo-rel2:nfvo/nfvo-rel2:vnfd/nfvo-rel2:id";
+            }
+            must ". = deref(../nfvo-rel2-esc:vnf-profile)/../nfvo-rel2:vnfd" {
+              tailf:dependency "../vnf-profile";
+            }
+          }
+          uses vnf-info;
+        }
+        // pnfInfo
+        list virtual-link-info {
+          key "virtual-link-descriptor";
+          leaf virtual-link-descriptor {
+            type leafref {
+              path "deref(../../nfvo-rel2-esc:nsd)/../nfvo-rel2:virtual-link-descriptor/nfvo-rel2:id";
+            }
+          }
+          uses network-parameters;
+        }
+        // vnffgInfo
+        list sap-info {
+          key "sapd";
+          leaf sapd {
+            type leafref {
+              path "deref(../../nfvo-rel2-esc:nsd)/../nfvo-rel2:service-access-point-descriptor/nfvo-rel2:id";
+            }
+          }
+          leaf network-name {
+            mandatory true;
+            type string;
+          }
+          leaf sap-name {
+            type string;
+          }
+          leaf description {
+            type string;
+          }
+          leaf address {
+            description
+              "The address information shall be compatible with the type and sub-type attribute of the SAPD. In case of an
+              IP address, a port number may be included.";
+            type inet:ip-address;
+          }
+        }
+
+        list nested-ns-info {
+          must "nfvo-rel2-esc:ns-info != ../nfvo-rel2-esc:id" {
+            error-message "A nested NS cannot reference itself";
+          }
+          key "ns-info";
+          leaf ns-info {
+            type leafref {
+              path "/nfvo-rel2:nfvo/nfvo-rel2:ns-info/nfvo-rel2-esc:esc/nfvo-rel2-esc:ns-info/nfvo-rel2-esc:id";
+            }
+          }
+        }
+
+        leaf state {
+          mandatory true;
+          type enumeration {
+            enum instantiated;
+            enum not-instantiated;
+          }
+        }
+
+        container scaling-status {
+          config false;
+          description
+            "Represents for each NS
+            scaling aspect declared in the
+            applicable DF, how 'big' the
+            NS instance has been scaled
+            w.r.t. that aspect.";
+          leaf scaling-aspect {
+            type leafref {
+              path "deref(../../nfvo-rel2-esc:flavor)/../nfvo-rel2:scaling-aspect/nfvo-rel2:aspect";
+            }
+          }
+
+          leaf scaling-level {
+            description
+              "this indirectly refers to an NSD instantiation level";
+            type leafref {
+              path "deref(../nfvo-rel2-esc:scaling-aspect)/../nfvo-rel2:scaling-level";
+            }
+          }
+        }
+
+        // list additional-affinity-or-anti-affinity-rule {
+        // }
+      }
+    }
+  }
+
+  augment /nfvo-rel2:nfvo/nfvo-rel2:onboarding {
+    container esc {
+      list flavor {
+        uses ncs:service-data;
+        ncs:servicepoint tailf-etsi-rel2-nfvo-esc-onboard-flavor;
+
+        description
+          "Service to create flavor from VDUs in ESC";
+
+        key "name";
+        leaf name {
+          type string;
+        }
+
+        leaf vnfd {
+          mandatory true;
+          type leafref {
+            path "/nfvo-rel2:nfvo/nfvo-rel2:vnfd/nfvo-rel2:id";
+          }
+        }
+
+        leaf vdu {
+          mandatory true;
+          type leafref {
+            path "deref(../nfvo-rel2-esc:vnfd)/../nfvo-rel2:vdu/nfvo-rel2:id";
+          }
+        }
+
+        must "/nfvo-rel2:nfvo/nfvo-rel2:vnfd[nfvo-rel2:id=current()/nfvo-rel2-esc:vnfd]/nfvo-rel2:vdu[nfvo-rel2:id=current()/nfvo-rel2-esc:vdu]/nfvo-rel2:virtual-compute-descriptor" {
+          error-message "Virtual-compute has to be specified";
+        }
+
+        list esc-device {
+          key name;
+
+          leaf name {
+            type leafref {
+              path "/ncs:devices/ncs:device/ncs:name";
+            }
+          }
+        }
+
+        container properties {
+            description "List of property name/value pairs";
+            list property {
+                key "name";
+
+                leaf name {
+                    description "Name/Key of property";
+                    mandatory true;
+                    type string;
+                }
+
+                leaf value {
+                    description "Value of property";
+                    mandatory true;
+                    type string;
+                }
+            }
+        }
+      }
+
+      list image {
+        uses ncs:service-data;
+        ncs:servicepoint tailf-etsi-rel2-nfvo-esc-onboard-image;
+
+        description
+          "Service to create flavor from VDUs in ESC";
+
+        key "name";
+        leaf name {
+          type string;
+        }
+
+        leaf vnfd {
+          mandatory true;
+          type leafref {
+            path "/nfvo-rel2:nfvo/nfvo-rel2:vnfd/nfvo-rel2:id";
+          }
+        }
+
+        leaf vdu {
+          mandatory true;
+          type leafref {
+            path "deref(../nfvo-rel2-esc:vnfd)/../nfvo-rel2:vdu/nfvo-rel2:id";
+          }
+        }
+
+        must "/nfvo-rel2:nfvo/nfvo-rel2:vnfd[nfvo-rel2:id=current()/nfvo-rel2-esc:vnfd]/nfvo-rel2:vdu[nfvo-rel2:id=current()/nfvo-rel2-esc:vdu]/nfvo-rel2:software-image-descriptor/nfvo-rel2:image" {
+          error-message "Image has to be specified";
+        }
+
+        list esc-device {
+          key name;
+
+          leaf name {
+            type leafref {
+              path "/ncs:devices/ncs:device/ncs:name";
+            }
+          }
+        }
+
+        container properties {
+            list property {
+                key "name";
+                description
+                    "Storage location for additional Image properties.";
+                leaf name {
+                    description
+                        "Property key, for example maximum VCPUs supported by this VNF image.";
+                    type string;
+                    mandatory true;
+                }
+                leaf type {
+                    description
+                        "Type of property.";
+                    type string;
+                }
+                leaf-list value {
+                    description "One or more values";
+                    type string;
+                }
+            }
+        }
+      }
+    }
+  }
+
+  augment /nfvo-rel2:nfvo {
+    container tailf-esc-internal {
+      list vnf-deployment {
+        uses ncs:service-data;
+        ncs:servicepoint tailf-etsi-rel2-nfvo-esc-vnf-info-backend;
+        key "tenant deployment-name esc";
+        uses vnf-deployment;
+        description "The actual VNFInfo service instance.";
+      }
+    }
+
+    container settings-esc {
+      presence "Stores ESC settings.";
+      uses ncs:service-data;
+      ncs:servicepoint tailf-etsi-rel2-nfvo-esc-settings;
+
+      container netconf-subscription {
+        leaf username {
+          tailf:info "Username used to setup NETCONF subscriptions to the ESC devices";
+          type string;
+          mandatory true;
+        }
+
+        leaf reconnect-interval {
+          tailf:info "Interval for re-establishing the subscription";
+          type uint32;
+          units "seconds";
+          default 60;
+        }
+
+        list esc-device {
+          key name;
+
+          leaf name {
+            type leafref {
+              path "/ncs:devices/ncs:device/ncs:name";
+            }
+          }
+        }
+
+        leaf default-subscriber {
+          tailf:info
+            "Set this to false if you do NOT want default ESC
+             notification handling implemented by netconf_notif.py";
+          type boolean;
+          default true;
+        }
+      }
+    }
+  }
+}

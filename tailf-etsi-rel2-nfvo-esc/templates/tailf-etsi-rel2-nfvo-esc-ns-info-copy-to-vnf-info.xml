@@ -1,0 +1,101 @@
+<config xmlns="http://tail-f.com/ns/config/1.0">
+  <nfvo xmlns="http://tail-f.com/pkg/tailf-etsi-rel2-nfvo">
+    <vnf-info>
+      <esc xmlns="http://tail-f.com/pkg/tailf-etsi-rel2-nfvo-esc">
+        <vnf-deployment tags="merge">
+          <tenant>{/tenant}</tenant>
+          <deployment-name>{/deployment-name}</deployment-name>
+          <esc>{/esc}</esc>
+          <username>{/username}</username>
+          <nfvo-behaviors>
+            <staged-delete when="{/staged-delete}"/>
+          </nfvo-behaviors>
+          <vnf-info>
+            <name>{$VNF_PROFILE_NAME}</name>
+            <vnfd>{$VNF_NAME}</vnfd>
+            <vnfd-flavor>{$VNF_FLAVOR}</vnfd-flavor>
+            <instantiation-level>{$VNF_IL}</instantiation-level>
+            <vdu>
+              <id>{/vnf-info[vnf-profile=$VNF_PROFILE_NAME]/vdu/id}</id>
+              <managed when="{managed}"/>
+              <image-name>{image-name}</image-name>
+              <flavor-name>{flavor-name}</flavor-name>
+              <bootup-time>{bootup-time}</bootup-time>
+              <reboot-time>{reboot-time}</reboot-time>
+              <recovery-wait-time>{recovery-wait-time}</recovery-wait-time>
+              <day0>
+                <destination>{day0/destination}</destination>
+                <url when="{url}">{url}</url>
+                <data when="{data}">{data}</data>
+                <variable>
+                  <name>{variable/name}</name>
+                  <value>{value}</value>
+                </variable>
+              </day0>
+              <device-profile>{device-profile}</device-profile>
+              <authgroup>{authgroup}</authgroup>
+              <host-key-verification-type>{host-key-verification-type}</host-key-verification-type>
+              <internal-connection-point>
+                <id>{internal-connection-point/id}</id>
+                <connection-point-address when="{connection-point-address}">
+                  <address when="{connection-point-address/address}">{connection-point-address/address}</address>
+                  <gateway when="{connection-point-address/gateway}">{connection-point-address/gateway}</gateway>
+                  <netmask when="{connection-point-address/netmask}">{connection-point-address/netmask}</netmask>
+                  <start>{connection-point-address/start}</start>
+                  <end>{connection-point-address/end}</end>
+                </connection-point-address>
+                <allowed-address-pair>
+                  <address>{allowed-address-pair/address}</address>
+                  <netmask>{netmask}</netmask>
+                </allowed-address-pair>
+              </internal-connection-point>
+              <esc-device-template>
+                <name>{esc-device-template/name}</name>
+                <variable>
+                  <name>{variable/name}</name>
+                  <value>{value}</value>
+                </variable>
+              </esc-device-template>
+              <vm-alive-actions>
+                <TRUE>{vm-alive-actions/TRUE}</TRUE>
+                <FALSE>{vm-alive-actions/FALSE}</FALSE>
+                <ALWAYS>{vm-alive-actions/ALWAYS}</ALWAYS>
+              </vm-alive-actions>
+            </vdu>
+            <virtual-link>
+              <id>{/vnf-info[vnf-profile=$VNF_PROFILE_NAME]/virtual-link/id}</id>
+              <dhcp when="{dhcp}"/>
+              <subnet>
+                <network>{subnet/network}</network>
+                <gateway when="{subnet/gateway}">{subnet/gateway}</gateway>
+                <no-gateway when="{subnet/no-gateway}"/>
+              </subnet>
+            </virtual-link>
+          </vnf-info>
+          <state>{state}</state>
+        </vnf-deployment>
+      </esc>
+    </vnf-info>
+  </nfvo>
+  <kickers xmlns="http://tail-f.com/ns/kicker">
+    <data-kicker>
+      <id>tailf-etsi-rel2-nfvo-esc-ns-info-{/id}</id>
+      <monitor>/nfvo-rel2:nfvo/nfvo-rel2:vnf-info/nfvo-rel2-esc:esc/nfvo-rel2-esc:vnf-deployment[nfvo-rel2-esc:tenant='{/tenant}'][nfvo-rel2-esc:deployment-name='{/deployment-name}'][nfvo-rel2-esc:esc='{/esc}']/nfvo-rel2-esc:plan/nfvo-rel2-esc:component[nfvo-rel2-esc:name='self']/nfvo-rel2-esc:state[nfvo-rel2-esc:name='ncs:ready']</monitor>
+      <trigger-expr>nfvo-rel2-esc:status='reached'</trigger-expr>
+      <trigger-type>enter</trigger-type>
+      <kick-node xmlns:example="http://tail-f.com/pkg/tailf-etsi-rel2-nfvo-esc">
+        /nfvo-rel2:nfvo/nfvo-rel2:ns-info/nfvo-rel2-esc:esc/nfvo-rel2-esc:ns-info[id='{/id}']
+      </kick-node>
+      <action-name>reactive-re-deploy</action-name>
+    </data-kicker>
+    <data-kicker>
+      <id>tailf-etsi-rel2-nfvo-esc-ns-info{/id}-error</id>
+      <monitor>/nfvo-rel2:nfvo/nfvo-rel2:vnf-info/nfvo-rel2-esc:esc/nfvo-rel2-esc:vnf-deployment[nfvo-rel2-esc:tenant='{/tenant}'][nfvo-rel2-esc:deployment-name='{/deployment-name}'][nfvo-rel2-esc:esc='{/esc}']/nfvo-rel2-esc:plan/nfvo-rel2-esc:failed</monitor>
+      <trigger-type>enter</trigger-type>
+      <kick-node xmlns:example="http://tail-f.com/pkg/tailf-etsi-rel2-nfvo-esc">
+        /nfvo-rel2:nfvo/nfvo-rel2:ns-info/nfvo-rel2-esc:esc/nfvo-rel2-esc:ns-info[id='{/id}']
+      </kick-node>
+      <action-name>reactive-re-deploy</action-name>
+    </data-kicker>
+  </kickers>
+</config>

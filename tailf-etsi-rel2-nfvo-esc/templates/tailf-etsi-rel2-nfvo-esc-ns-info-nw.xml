@@ -1,0 +1,26 @@
+<config xmlns="http://tail-f.com/ns/config/1.0">
+  <nfvo xmlns="http://tail-f.com/pkg/tailf-etsi-rel2-nfvo">
+    <vnf-info>
+      <esc xmlns="http://tail-f.com/pkg/tailf-etsi-rel2-nfvo-esc">
+        <vnf-deployment>
+          <tenant>{/tenant}</tenant>
+          <deployment-name>{/deployment-name}</deployment-name>
+          <esc>{/esc}</esc>
+          <additional-network>
+            <network-name>{$NW}</network-name>
+            <dhcp when="{/virtual-link-info[virtual-link-descriptor=$NS_VLD]/dhcp}"/>
+            <subnet>
+              <network>{/virtual-link-info[virtual-link-descriptor=$NS_VLD]/subnet/network}</network>
+              <gateway>{/virtual-link-info[virtual-link-descriptor=$NS_VLD]/subnet/gateway}</gateway>
+              <no-gateway when="{/virtual-link-info[virtual-link-descriptor=$NS_VLD]/subnet/no-gateway}"/>
+            </subnet>
+            <vlan when="{/virtual-link-info[virtual-link-descriptor=$NS_VLD]/vlan}">
+              <physical-network-name>{/virtual-link-info[virtual-link-descriptor=$NS_VLD]/vlan/physical-network-name}</physical-network-name>
+              <id>{/virtual-link-info[virtual-link-descriptor=$NS_VLD]/vlan/id}</id>
+            </vlan>
+          </additional-network>
+        </vnf-deployment>
+      </esc>
+    </vnf-info>
+  </nfvo>
+</config>

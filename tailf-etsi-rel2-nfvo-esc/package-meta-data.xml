@@ -1,0 +1,21 @@
+<ncs-package xmlns="http://tail-f.com/ns/ncs-packages">
+  <name>tailf-etsi-rel2-nfvo-esc</name>
+  <package-version>1.0.0</package-version>
+  <description>ESC Implementation of the NFVO models</description>
+  <ncs-min-version>4.2.2</ncs-min-version>
+
+  <required-package>
+    <name>esc</name>
+  </required-package>
+
+  <required-package>
+    <name>tailf-etsi-rel2-nfvo</name>
+  </required-package>
+
+  <component>
+    <name>tailf_etsi_rel2_nfvo_esc_init</name>
+    <application>
+      <python-class-name>tailf_etsi_rel2_nfvo_esc_init.TailF_NFVO_ESC</python-class-name>
+    </application>
+  </component>
+</ncs-package>
