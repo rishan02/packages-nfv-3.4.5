@@ -1,0 +1,37 @@
+<!--
+BRN    - Business registration number
+NFV_VAS_REF
+MAIN_CIRCUIT_ID
+BANDWIDTH
+SERVICE_TYPE
+DEPLOYMENT_TYPE
+HOSTNAME
+LOCAL_VDOM_ID
+PROFILE
+-->
+<config xmlns="http://tail-f.com/ns/config/1.0">
+    <customers xmlns="http://com/singtel/nfv/dashboard">
+        <customer tags="merge">
+            <brn>{$BRN}</brn>
+            <services>
+                <service>
+                    <nfv-vas-reference>{$NFV_VAS_REF}</nfv-vas-reference>
+                    <ban>{$BAN}</ban>
+                    <service-type>dbutm:utm</service-type>
+                    <circuit-reference>{$MAIN_CIRCUIT_ID}</circuit-reference>
+                    <network>{$NETWORK}</network>
+                    <dc>{$SITE}</dc>
+                    <speed>{$BANDWIDTH}</speed>
+                    <brand>Fortigate</brand>
+                    <utm xmlns="http://com/singtel/nfv/utm/dashboard">
+                        <service-type>{$SERVICE_TYPE}</service-type>
+                        <deployment-type>{$DEPLOYMENT_TYPE}</deployment-type>
+                        <hostname>{$HOSTNAME}</hostname>
+                        <local-vdom-id>{$LOCAL_VDOM_ID}</local-vdom-id>
+                        <profile>{$PROFILE}</profile>
+                    </utm>
+                </service>
+            </services>
+        </customer>
+    </customers>
+</config>

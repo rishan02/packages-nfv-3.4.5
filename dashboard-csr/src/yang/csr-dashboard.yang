@@ -1,0 +1,49 @@
+module csr-dashboard {
+    namespace "http://com/singtel/nfv/csr/dashboard";
+    prefix dbcsr;
+
+    import tailf-common {
+        prefix tailf;
+    }
+    import tailf-ncs {
+        prefix ncs;
+    }
+    import dashboard {
+        prefix db;
+    }
+    revision "2017-01-18" {
+        description "First draft.";
+    }
+    revision "2017-01-26" {
+        description "Revised to include csr specific ";
+    }
+
+    identity vcpe {
+        base "db:service-type-identity";
+    }
+
+
+    augment "/db:customers/db:customer/db:services/db:service" {
+        when "/db:customers/db:customer/db:services/db:service/db:service-type='dbcsr:vcpe'";
+        container vcpe {
+            leaf service-name {
+                tailf:info "Service Name";
+                type string;
+            }
+            leaf sid {
+                tailf:info "Service Identifier";
+                type string;
+            }
+            leaf nickname {
+                tailf:info "Service label";
+                type string;
+            }
+
+            leaf network-service {
+                tailf:info "Network service label";
+                type string;
+            }
+        }
+    }
+
+}

@@ -1,0 +1,20 @@
+<ncs-package xmlns="http://tail-f.com/ns/ncs-packages">
+  <name>dashboard-utm</name>
+  <package-version>0.3.1</package-version>
+  <description>Java-based dashboard resource facing service</description>
+  <ncs-min-version>4.2.2</ncs-min-version>
+  <required-package>
+    <name>dashboard</name>
+  </required-package>
+  <required-package>
+    <name>dd-resource-manager-shared</name>
+  </required-package>
+  <!-- It's possible to add more components to the -->
+  <!-- same package, multiple services, data providers etc -->
+  <component>
+    <name>Callbacks for operational status</name>
+    <callback>
+      <java-class-name>com.cisco.singtel.dashboardUtm.callbacks.HostOperationalCallbacks</java-class-name>
+    </callback>
+  </component>
+</ncs-package>

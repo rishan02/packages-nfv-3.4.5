@@ -1,0 +1,73 @@
+module utm-dashboard {
+    namespace "http://com/singtel/nfv/utm/dashboard";
+    prefix dbutm;
+
+    import tailf-common {
+        prefix tailf;
+    }
+    import tailf-ncs {
+        prefix ncs;
+    }
+    import dashboard {
+        prefix db;
+    }
+
+    revision "2017-02-23" {
+        description "Added deployment-status and oeprational-status, this is operational data nad should be callbacks for each vm deployment";
+    }
+    revision "2017-01-12" {
+        description "First draft.";
+    }
+
+    identity utm {
+        base "db:service-type-identity";
+    }
+
+
+    augment "/db:customers/db:customer/db:services/db:service" {
+        when "/db:customers/db:customer/db:services/db:service/db:service-type='dbutm:utm'";
+        container utm {
+            presence true;
+            leaf service-type {
+                type enumeration {
+                    enum singnet;
+                    enum vpn;
+                }
+            }
+            leaf deployment-type {
+                type enumeration {
+                    enum virtual;
+                    enum physical;
+                }
+            }
+            leaf hostname {
+                type string;
+            }
+            leaf local-vdom-id {
+                type string;
+            }
+            leaf profile {
+                type string;
+            }
+            leaf operational-status {
+                tailf:callpoint dashboard-utm-operational-status;
+                tailf:hidden all;
+                type enumeration {
+                    enum in-progress;
+                    enum ready;
+                    enum recovering;
+                    enum failed;
+                }
+            }
+            leaf deployment-status {
+                tailf:callpoint dashboard-utm-deployment-status;
+                tailf:hidden all;
+                type enumeration {
+                    enum in-progress;
+                    enum ready;
+                    enum failed;
+                }
+            }
+        }
+    }
+}
