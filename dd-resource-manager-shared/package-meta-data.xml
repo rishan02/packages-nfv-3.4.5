@@ -1,0 +1,6 @@
+<ncs-package xmlns="http://tail-f.com/ns/ncs-packages">
+  <name>dd-resource-manager-shared</name>
+  <package-version>0.3.1</package-version>
+  <description>utm service</description>
+  <ncs-min-version>4.2</ncs-min-version>
+</ncs-package>
